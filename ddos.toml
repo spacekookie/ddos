@@ -1,0 +1,7 @@
+[ddos]
+# Paths are from current directory DDOS is run from.
+# For system installation, set absolute paths!
+keys = "keys/"
+hooks = "ddos.lua"
+port = 8001
+hosts = "hosts.toml"
