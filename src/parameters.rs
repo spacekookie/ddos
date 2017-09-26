@@ -3,7 +3,7 @@
 use clap::{Arg, App, SubCommand, ArgMatches};
 
 
-pub fn initialise<'a>(name: String, version: &'a str) -> App<'a, 'a> {
+pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {
     let mut app = App::new(name)
         .version(version)
         .author("Katharina Fey <kookie@spacekookie.de>")
@@ -35,14 +35,15 @@ pub fn initialise<'a>(name: String, version: &'a str) -> App<'a, 'a> {
         .subcommand(SubCommand::with_name("run").about("Run ddos as a forground process"))
     
     /* Basic daemon control flow */
-        .subcommand(SubCommand::with_name("start").about("Start ddos as a background process"))
-        .subcommand(SubCommand::with_name("stop").about("Stop ddos background process (if exists)"))
-        .subcommand(SubCommand::with_name("status").about("Get the current ddos process status"))
-        .subcommand(SubCommand::with_name("restart").about("First stop, then restart ddos"))
+        // .subcommand(SubCommand::with_name("start").about("Start ddos as a background process"))
+        // .subcommand(SubCommand::with_name("stop").about("Stop ddos background process (if exists)"))
+        // .subcommand(SubCommand::with_name("status").about("Get the current ddos process status"))
+        // .subcommand(SubCommand::with_name("restart").about("First stop, then restart ddos"))
 
     /* Utility to register/unregister pubkeys */
-        .subcommand(SubCommand::with_name("register").about("Register a public key as authorised"))
-        .subcommand(SubCommand::with_name("unregister").about("Unregister an authorised key"));
+        // .subcommand(SubCommand::with_name("register").about("Register a public key as authorised"))
+        // .subcommand(SubCommand::with_name("unregister").about("Unregister an authorised key"))
+        ; // FIXME: 🤮 I don't want to have to move it every time :P
 
     return app;
 }
