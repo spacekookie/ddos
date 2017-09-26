@@ -2,16 +2,25 @@
 ///
 /// 
 
-
-// External dependencies
 extern crate clap;
-use clap::{Arg, App, SubCommand};
 
 // stdlib dependencies
+use std::fs;
 use std::env;
 use std::path::Path;
 use std::ffi::OsStr;
 
+// Internal modules
+mod parameters;
+
+
+/// Holds the core state for DDOS
+struct DDOS {
+    lua: String,
+    hosts: String,
+    keys: Vec<String>,
+    api_port: u32,
+}
 
 /// Main application entry point
 fn main() {
@@ -22,37 +31,43 @@ fn main() {
         .and_then(OsStr::to_str)
         .map(String::from).unwrap();
 
-    let matches = App::new(name).version("0.1")
-                    .author("Katharina Fey <kookie@spacekookie.de>")
-                    .about("A Dynamic DOmain nameServer client which is configurable in lua and provides a RESTful API for remote host configuration")
-                    .arg(Arg::with_name("port")
-                            .short("p")
-                            .long("port")
-                            .help("Sets a custom port for REST interface")
-                            .takes_value(true))
-                    .arg(Arg::with_name("config")
-                            .short("c")
-                            .long("config")
-                            .help("Provide a custom .lua config file (see README)")
-                            .takes_value(true))
-                    .arg(Arg::with_name("store")
-                            .short("s")
-                            .long("store")
-                            .help("Custom storage location for known hosts (.json file)")
-                            .takes_value(true))
-                    .arg(Arg::with_name("keystore")
-                            .short("ks")
-                            .long("keys")
-                            .help("Provide the directory where authorised public keys are stored")
-                            .takes_value(true))
-                    .subcommand(SubCommand::with_name("run").about("Run ddos as a forground process (mostly for development)"))
-                    .subcommand(SubCommand::with_name("start").about("Start ddos as a background process"))
-                    .subcommand(SubCommand::with_name("stop").about("Stop ddos background process (if exists)"))
-                    .subcommand(SubCommand::with_name("status").about("Get the current ddos process status"))
-                    .subcommand(SubCommand::with_name("restart").about("First stop, then restart ddos"))
-                    .subcommand(SubCommand::with_name("reload").about("Reload the lua file in case of changes"))
-                    .get_matches();
+    let version = "0.1.0";
 
-    let port = matches.value_of("port").unwrap_or("8888");
-    println!("Port: {}", port);
+    let app = parameters::initialise(name, version);
+    let matches = app.get_matches();
+
+    /* Get argument values or set some sane defaults */
+    let port = matches.value_of("port").unwrap_or("8001");
+    let config: String = matches.value_of("config").unwrap_or("ddos.lua").to_string();
+    let hoststore: String = matches.value_of("hoststore").unwrap_or("hosts.json").to_string();
+    let keystore: String = matches.value_of("keystore").unwrap_or("keys/").to_string();
+
+    // println!("Port: {}", port);
+    // println!("Config: {}", config);
+    // println!("Hoststore: {}", hoststore);
+    // println!("Keystore: {}", keystore);
+
+    // match read_keys_from_directory(keystore) {
+    //     Some(_) => {},
+    //      None => {
+    //         println!("Failed to open key store!");
+
+    //      },
+    //  }
+}
+
+
+fn read_keys_from_directory(path: String) -> Option<Vec<String>> {
+    let mut keys: Vec<String> = Vec::new();
+
+    let paths = match fs::read_dir(path) {
+        Ok(file) => file,
+        _ => return None
+    };
+
+    for path in paths {
+        println!("Name: {}", path.unwrap().path().display())
+    }
+
+    return Option::from(keys);
 }
