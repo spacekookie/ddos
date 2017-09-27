@@ -6,3 +6,5 @@ authors = ["Katharina Fey <kookie@spacekookie.de>"]
 [dependencies]
 clap = "2.26.2"
 toml = "0.4"  # That's kinda meta :)
+serde = "1.0"
+serde_derive = "1.0"
