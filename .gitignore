@@ -1,2 +1,7 @@
 /target/
 **/*.rs.bk
+
+# Application specific
+keys/
+hosts.json
+

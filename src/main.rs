@@ -100,7 +100,7 @@ fn main() {
         err.log_and_die("Provided keys directory didn't exist!", 255);
     }
 
-    // let keys: Vec<String> = read_keys_from_directory(keys_path);
+    let keys: Vec<String> = read_keys_from_directory(keys_path);
 }
 
 
@@ -115,7 +115,7 @@ fn read_keys_from_directory(path: &str) -> Vec<String> {
     };
 
     for path in paths {
-
+        
     }
 
     return keys;
