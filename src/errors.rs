@@ -1,8 +1,8 @@
-/// A simple module to help print errors for the user
-//
-// It provides an easy API to call for error prints which
-// will then inform the user (sometimes in colour!) about
-// what went wrong! Nice, eh?
+//! A simple module to help print errors for the user
+//!
+//! It provides an easy API to call for error prints which
+//! will then inform the user (sometimes in colour!) about
+//! what went wrong! Nice, eh?
 
 use std::process;
 use colored::*;

@@ -1,4 +1,4 @@
-// External dependencies
+//! External dependencies
 
 use clap::{Arg, App, SubCommand, ArgMatches};
 

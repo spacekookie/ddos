@@ -1,12 +1,18 @@
-/// Small dynamic DNS utily with RESTful API for configuration
-///
-/// 
+//! Small dynamic DNS utily with RESTful API for configuration
+//!
+//!
+
+// WTF: Why does this have to be on top?
+#![feature(plugin)]
+#![plugin(rocket_codegen)]
+extern crate rocket;
 
 extern crate clap;
 extern crate toml;
 extern crate colored;
-#[macro_use] extern crate serde_derive;
 
+#[macro_use]
+extern crate serde_derive;
 
 // stdlib dependencies
 use std::fs;

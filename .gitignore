@@ -3,5 +3,5 @@
 
 # Application specific
 keys/
-hosts.json
+hosts.toml
 
