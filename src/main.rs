@@ -28,6 +28,8 @@ use errors::{Errors, ErrorType};
 mod core;
 use core::DDOS;
 
+mod rest;
+
 /// Struct that represents a TOML configuration on disk
 #[derive(Debug, Deserialize)]
 struct TomlConfig {
@@ -102,7 +104,10 @@ fn main() {
     LOG.log("Loaded config successfully!", ErrorType::Status);
 
     /* Initialise the main state and try (🤞) to load required files */
-    let mut state = DDOS::new(lua_path, hosts_path, keys_path, port);
+    let state = DDOS::new(lua_path, hosts_path, keys_path, port);
+    
+    /* Initialise the REST API (🚀) with referenced state */
+    rest::initialise(state);
     
     // 9:45
 }

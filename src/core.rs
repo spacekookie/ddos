@@ -2,10 +2,11 @@
 
 // stdlib dependencies
 use std::fs;
-use std::fs::File;
-use std::ffi::OsStr;
-use std::path::Path;
+use std::fs::*;
+use std::ffi::*;
+use std::path::*;
 use std::io::prelude::*;
+use std::collections::*;
 
 use errors::Errors;
 use LOG;
@@ -14,9 +15,9 @@ use LOG;
 /// The core ddos state
 pub struct DDOS {
   lua: String,
-  hosts: String,
-  keys: Vec<String>,
-  api_port: u32,
+  pub hosts: HashMap<String, String>,
+  pub keys: Vec<String>,
+  pub api_port: u32,
 }
 
 
@@ -30,7 +31,7 @@ impl DDOS {
 
     return DDOS {
       lua: String::from(""), 
-      hosts: String::from(""), 
+      hosts: hosts, 
       api_port: port,
       keys: keys, 
     }
@@ -76,15 +77,14 @@ impl DDOS {
     return keys;
   }
 
-  fn get_hosts(path: &str) -> Vec<String> {
-    let mut keys: Vec<String> = Vec::new();
+  fn get_hosts(path: &str) -> HashMap<String, String> {
+    let mut hosts: HashMap<String, String> = HashMap::new();
 
+    // TODO: Read data from some form of config!
+    let k = String::from("kookiejar.tech");
+    let v = String::from("67.61.79.0"); // 🌈
+    hosts.insert(k, v);
 
-
-    return keys;
+    return hosts;
   }
 }
-
-// pub fn fooooooo() {
-//     ERRORS.log_and_die("", 255);
-// }
