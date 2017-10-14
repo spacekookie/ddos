@@ -26,7 +26,7 @@ impl<'a> Errors<'a> {
     }
 
     pub fn warn(&self, msg: &str) {
-        self.log(msg, ErrorType::Warning);
+        self._log(msg, ErrorType::Warning, 1);
     }
 
     /// Easily logs a message with a type used as a formatter

@@ -5,6 +5,7 @@
 // WTF: Why does this have to be on top?
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
+#![feature(custom_derive)]
 extern crate rocket;
 
 extern crate clap;
@@ -105,11 +106,10 @@ fn main() {
 
     /* Initialise the main state and try (🤞) to load required files */
     let state = DDOS::new(lua_path, hosts_path, keys_path, port);
-    
+
     /* Initialise the REST API (🚀) with referenced state */
     rest::initialise(state);
-    
-    // 9:45
+
 }
 
 
