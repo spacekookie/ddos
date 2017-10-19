@@ -34,7 +34,7 @@ impl DDOS {
       hosts: hosts, 
       api_port: port,
       keys: keys, 
-    }
+    };
   }
 
   fn get_authorized(path: &str) -> HashMap<String, String> {
@@ -51,7 +51,6 @@ impl DDOS {
         }
     };
     
-
     /* Loop over "secrets" - keys are file names */
     for item in items {
         let path = match item {

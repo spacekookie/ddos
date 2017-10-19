@@ -1,46 +1,53 @@
 //! Module that provides the RESTful API for remote host configuration
 
 use rocket;
-use rocket::{Request, Route, Data};
-use rocket::handler::Outcome;
-use rocket::http::Method;
 use rocket::*;
-use rocket::request::*;
+use rocket::data::FromData;
+use rocket::response::content::Json;
 
 use core::DDOS;
 
-#[derive(FromForm)]
-#[derive(Debug)]
+
+#[derive(Debug, FromForm)]
 struct Signature {
     signature: String,
     key_id: String,
 }
 
-#[get("/query/<host>?<payload>")]
+#[derive(Debug, Serialize, Deserialize)]
+struct Host {
+  name: String,
+  ip: String,
+}
+
+/// Gets some base data for a registered host. Is considered public 
+///   because DNS can return the same information as this API so
+///   there isn't really any point to faking privacy
+#[get("/host/<host>?<payload>")]
 fn query(host: String, payload: Option<Signature>, ddos: State<DDOS>) -> String {
   
-  /* "Find" a host */
-  let hq = ddos.hosts.get(&host);
+    /* "Find" a host */
+    let hq = ddos.hosts.get(&host);
 
-  match (hq, &payload) {
-    (Some(h), &Some(ref sig)) => {
-      return format!("Host: {}\nSignature: {:?}", h, sig.signature);
-    },
-    (_, _) => return format!("INVALID PARAMETERS {}, {:?}!", host, &payload)
-  }
-
-  return format!("INVALID PARAMETERS!");
-
-  // match pl {
-  //     Some(sig) => ,
-  //     _ => return format!("INVALID PARAMETERS!"),
-  // }
-
-  // let my_host = ddos.hosts.get(&host).unwrap();
-
-  // return format!("Getting host config for {}: '{}'. Signature: {}", 
-    // host, my_host, pl.unwrap().signature);
+    match (hq, &payload) {
+        (Some(h), &Some(ref sig)) => {
+            return format!("Host: {}\nSignature: {:?}", h, sig.signature);
+        },
+        (_, _) => return format!("INVALID PARAMETERS {}, {:?}!", host, &payload)
+    }
 }
+
+#[derive(Deserialize)]
+struct Task {
+    description: String,
+    complete: bool
+}
+
+#[post("/todo", data = "<task>")]
+fn test_function(task: Json<Task>) -> String { 
+  return format!("Foooo");
+}
+
 
 pub fn initialise(state: DDOS) {
     rocket::ignite()

@@ -42,7 +42,7 @@ impl<'a> Errors<'a> {
     /// Log a message and then exit the application
     pub fn log_and_die(&self, msg: &str, code: i32) -> ! {
         self._log(msg, ErrorType::Problem, code);
-        return process::exit(code);
+        process::exit(code);
     }
 
     /// Internal utility function which supports colour printing

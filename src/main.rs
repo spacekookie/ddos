@@ -2,7 +2,6 @@
 //!
 //!
 
-// WTF: Why does this have to be on top?
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 #![feature(custom_derive)]
@@ -14,9 +13,9 @@ extern crate colored;
 
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
 
 // stdlib dependencies
-use std::fs;
 use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
@@ -57,6 +56,7 @@ fn load_config(path: String) -> TomlConfig {
 
     /* See if the provided config is loadable (exists && valid) */
     let cfg_path = Path::new(&path);
+
     if !cfg_path.exists() {
         LOG.log_and_die("Provided configuration wasn't found!", 255);
     }
@@ -109,7 +109,4 @@ fn main() {
 
     /* Initialise the REST API (🚀) with referenced state */
     rest::initialise(state);
-
 }
-
-
