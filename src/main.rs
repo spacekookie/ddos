@@ -13,7 +13,6 @@ extern crate colored;
 
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
 
 // stdlib dependencies
 use std::fs::File;

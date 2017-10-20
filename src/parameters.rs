@@ -1,6 +1,6 @@
 //! External dependencies
 
-use clap::{Arg, App, SubCommand, ArgMatches};
+use clap::{Arg, App, SubCommand}; // ArgMatches
 
 
 pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {

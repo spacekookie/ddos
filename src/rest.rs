@@ -1,8 +1,7 @@
 //! Module that provides the RESTful API for remote host configuration
 
 use rocket;
-use rocket::*;
-use rocket::data::FromData;
+use rocket::State;
 use rocket::response::content::Json;
 
 use core::DDOS;
@@ -37,7 +36,7 @@ fn query(host: String, payload: Option<Signature>, ddos: State<DDOS>) -> String 
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Task {
     description: String,
     complete: bool
@@ -51,6 +50,7 @@ fn test_function(task: Json<Task>) -> String {
 
 pub fn initialise(state: DDOS) {
     rocket::ignite()
+      
       .mount("/", routes![query])
       .manage(state)
       .launch();
