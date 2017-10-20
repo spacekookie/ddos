@@ -15,8 +15,8 @@ struct Signature {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Host {
-  name: String,
-  ip: String,
+    name: String,
+    ip: String,
 }
 
 /// Gets some base data for a registered host. Is considered public 
@@ -44,14 +44,13 @@ struct Task {
 
 #[post("/todo", data = "<task>")]
 fn test_function(task: Json<Task>) -> String { 
-  return format!("Foooo");
+    return format!("Foooo");
 }
 
 
 pub fn initialise(state: DDOS) {
     rocket::ignite()
-      
-      .mount("/", routes![query])
-      .manage(state)
-      .launch();
+        .mount("/", routes![query])
+        .manage(state)
+        .launch();
 }
