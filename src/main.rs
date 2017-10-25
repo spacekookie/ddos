@@ -6,13 +6,12 @@
 #![plugin(rocket_codegen)]
 #![feature(custom_derive)]
 extern crate rocket;
+extern crate rocket_contrib;
+#[macro_use] extern crate serde_derive;
 
 extern crate clap;
 extern crate toml;
 extern crate colored;
-
-#[macro_use]
-extern crate serde_derive;
 
 // stdlib dependencies
 use std::fs::File;

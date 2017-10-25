@@ -2,7 +2,7 @@
 
 use rocket;
 use rocket::State;
-use rocket::response::content::Json;
+use rocket_contrib::Json;
 
 use core::DDOS;
 
@@ -36,21 +36,17 @@ fn query(host: String, payload: Option<Signature>, ddos: State<DDOS>) -> String 
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct Task {
-    description: String,
-    complete: bool
-}
 
-#[post("/todo", data = "<task>")]
-fn test_function(task: Json<Task>) -> String { 
-    return format!("Foooo");
+#[allow(unused_variables)]
+#[post("/host/<host>", format = "application/json", data = "<host_data>")]
+fn host_update(host: String, host_data: Json<Host>) {
+    
 }
 
 
 pub fn initialise(state: DDOS) {
     rocket::ignite()
-        .mount("/", routes![query])
+        .mount("/", routes![query, host_update])
         .manage(state)
         .launch();
 }
