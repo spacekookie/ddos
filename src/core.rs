@@ -2,6 +2,7 @@
 
 // stdlib dependencies
 use std::fs;
+use std::sync::Mutex;
 use std::fs::*;
 use std::ffi::*;
 use std::io::prelude::*;
@@ -12,9 +13,9 @@ use LOG;
 
 /// The core ddos state
 pub struct DDOS {
-    lua: String,
-    pub hosts: HashMap<String, String>,
-    pub keys: HashMap<String, String>,
+    pub lua: String,
+    pub hosts: Mutex<HashMap<String, String>>,
+    pub keys: Mutex<HashMap<String, String>>,
     pub api_port: u32,
 }
 
@@ -29,9 +30,9 @@ impl DDOS {
 
         return DDOS {
           lua: String::from(""), 
-          hosts: hosts, 
+          hosts: Mutex::new(hosts), 
           api_port: port,
-          keys: keys, 
+          keys: Mutex::new(keys), 
         };
     }
 

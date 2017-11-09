@@ -3,7 +3,6 @@
 use rocket;
 use rocket::State;
 use rocket_contrib::Json;
-
 use core::DDOS;
 
 
@@ -19,14 +18,17 @@ struct Host {
     ip: String,
 }
 
+
 /// Gets some base data for a registered host. Is considered public 
 ///   because DNS can return the same information as this API so
 ///   there isn't really any point to faking privacy
 #[get("/host/<host>?<payload>")]
-fn query(host: String, payload: Option<Signature>, ddos: State<DDOS>) -> String {
-  
+#[allow(unused_variables)]
+fn query(host: String, payload: Option<Signature>, state: State<DDOS>) -> String {
+
     /* "Find" a host */
-    let hq = ddos.hosts.get(&host);
+    let hosts = state.hosts.lock().unwrap();
+    let hq = hosts.get(&host);
 
     match (hq, &payload) {
         (Some(h), &Some(ref sig)) => {
@@ -39,8 +41,11 @@ fn query(host: String, payload: Option<Signature>, ddos: State<DDOS>) -> String 
 
 #[allow(unused_variables)]
 #[post("/host/<host>", format = "application/json", data = "<host_data>")]
-fn host_update(host: String, host_data: Json<Host>) {
-    
+fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) {
+    // TODO: Check authentication
+
+    let mut m = state.hosts.lock().unwrap();
+    m.insert(host_data.name.clone(), host_data.ip.clone());
 }
 
 
