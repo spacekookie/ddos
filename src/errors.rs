@@ -50,8 +50,8 @@ impl<'a> Errors<'a> {
         let cstr = match _type {
             ErrorType::Status => format!("({})", code).green().to_string(),
             ErrorType::Warning => format!("({})", code).yellow().to_string(),
-            ErrorType::Problem => format!("({})", code).red().to_string(),
-            _ => format!("({})", code).to_string(),
+            _ => format!("({})", code).red().to_string(),
+            // _ => format!("({})", code).to_string(),
         };
 
         println!("{} {} {}", cstr, "=>".cyan(), msg);

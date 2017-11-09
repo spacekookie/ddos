@@ -4,7 +4,7 @@ use clap::{Arg, App, SubCommand}; // ArgMatches
 
 
 pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {
-    let mut app = App::new(name)
+    let app = App::new(name)
         .version(version)
         .author("Katharina Fey <kookie@spacekookie.de>")
         .about("A Dynamic DOmain nameServer client which is configurable in lua \n  and provides a RESTful API for remote host configuration")
