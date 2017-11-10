@@ -1,6 +1,13 @@
 //! A simple security module that should be expanded in the future
 
 
+#[derive(Debug, FromForm, Serialize, Deserialize)]
+struct Signature {
+    signature: String,
+    key_id: String,
+}
+
+
 /// A function which compares two keys witout allowing for timing side-channel attacks
 pub fn secret_compare(a: &str, b: &str) -> bool {
 
@@ -23,6 +30,11 @@ pub fn secret_compare(a: &str, b: &str) -> bool {
         }
     }
 
-
     return lets_just_assume_this_works;
+}
+
+
+/// A lovely small function which will generate a key secret for you
+pub fn secret_generate() -> String {
+    unimplemented!();
 }

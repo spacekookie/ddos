@@ -5,13 +5,7 @@ use rocket::State;
 use rocket_contrib::Json;
 use core::DDOS;
 
-use security::secret_compare;
-
-#[derive(Debug, FromForm, Serialize, Deserialize)]
-struct Signature {
-    signature: String,
-    key_id: String,
-}
+use security::{secret_compare, Signature};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Host {
