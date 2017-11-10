@@ -13,15 +13,16 @@ use LOG;
 
 /// The core ddos state
 pub struct DDOS {
-    pub lua: String,
     pub hosts: Mutex<HashMap<String, String>>,
     pub keys: Mutex<HashMap<String, String>>,
+    pub lua: String,
     pub api_port: u32,
 }
 
 
 impl DDOS {
     
+    #[allow(unused_variables)]
     pub fn new(lua_path: &str, host_path: &str, key_path: &str, port: u32) -> DDOS {
           
         /* Read state from disk */
@@ -34,6 +35,11 @@ impl DDOS {
           api_port: port,
           keys: Mutex::new(keys), 
         };
+    }
+
+    /// A function that syncs the current state to disk
+    pub fn sync(&self) {
+        unimplemented!();
     }
 
     fn get_authorized(path: &str) -> HashMap<String, String> {

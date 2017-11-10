@@ -26,7 +26,9 @@ use errors::{Errors, ErrorType};
 mod core;
 use core::DDOS;
 
+mod security;
 mod rest;
+
 
 /// Struct that represents a TOML configuration on disk
 #[derive(Debug, Deserialize)]
