@@ -39,28 +39,27 @@ fn query(host: String, payload: Option<Signature>, state: State<DDOS>) -> String
 #[post("/host/<host>", format = "application/json", data = "<host_data>")]
 fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) -> String{
 
-    
-        /* First check the key ID is even known */
-        let sig = &host_data.auth;
+    /* First check the key ID is even known */
+    let sig = &host_data.auth;
 
-        let keyguard = state.keys.lock();
-        let keys = keyguard.unwrap();
+    let keyguard = state.keys.lock();
+    let keys = keyguard.unwrap();
 
-        // let keys = state.keys.lock().unwrap();
-        if !keys.contains_key(&host_data.auth.key_id) {
-            return format!("UNKNOWN KEY ID")
-        }
+    // let keys = state.keys.lock().unwrap();
+    if !keys.contains_key(&host_data.auth.key_id) {
+        return format!("UNKNOWN KEY ID")
+    }
 
-        /* Then compare the actual key secrets */
-        if !secret_compare(&host_data.auth.signature, &keys.get(&sig.key_id).unwrap()) {
-            return format!("SIGNATURE WRONG")
-        }
+    /* Then compare the actual key secrets */
+    if !secret_compare(&host_data.auth.signature, &keys.get(&sig.key_id).unwrap()) {
+        return format!("SIGNATURE WRONG")
+    }
 
-        let mut m = state.hosts.lock().unwrap();
-        m.insert(host_data.name.clone(), host_data.ip.clone());
+    let mut m = state.hosts.lock().unwrap();
+    m.insert(host_data.name.clone(), host_data.ip.clone());
 
-        drop(keys);
-    
+    // Dropping keys scope so we can lock it again later
+    drop(keys);
 
     // Sync the changes immediately
     state.sync();
