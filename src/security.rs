@@ -2,24 +2,26 @@
 
 
 #[derive(Debug, FromForm, Serialize, Deserialize)]
-struct Signature {
-    signature: String,
-    key_id: String,
+pub struct Signature {
+    pub signature: String,
+    pub key_id: String,
 }
 
 
 /// A function which compares two keys witout allowing for timing side-channel attacks
+/// 
+/// Provide it with two strings that are the same length
 pub fn secret_compare(a: &str, b: &str) -> bool {
 
     /* First compare length */
     let len_a = a.len();
     let len_b = b.len();
     if len_a != len_b {
+        println!("Not the same length {} {}", len_a, len_b);
         return false;
     }
 
-    let lets_just_assume_this_works = true;
-
+    let mut lets_just_assume_this_works = true;
     for x in 0 .. len_a {
         let ca: char = a.chars().nth(x).unwrap();
         let cb: char = b.chars().nth(x).unwrap();
@@ -35,6 +37,7 @@ pub fn secret_compare(a: &str, b: &str) -> bool {
 
 
 /// A lovely small function which will generate a key secret for you
+#[allow(unused)]
 pub fn secret_generate() -> String {
     unimplemented!();
 }

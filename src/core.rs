@@ -8,8 +8,22 @@ use std::ffi::*;
 use std::io::prelude::*;
 use std::collections::*;
 
+use serde_json;
+
 use LOG;
 
+
+#[derive(Serialize, Deserialize)]
+struct HostFile {
+    hosts: Vec<Host>,
+}
+
+
+#[derive(Serialize, Deserialize)]
+struct Host {
+    name: String,
+    ip: String,
+}
 
 /// The core ddos state
 pub struct DDOS {
@@ -39,7 +53,27 @@ impl DDOS {
 
     /// A function that syncs the current state to disk
     pub fn sync(&self) {
-        unimplemented!();
+        println!("Starting sync...");
+
+        let k = self.keys.lock().unwrap();
+
+        /* Move the hosts into a convenient list we can serialise */
+        let mut hosts: Vec<Host> = Vec::new();
+        for (name, ip) in k.iter() {
+
+            println!("{} ->{}", name, ip);
+            let h = Host {
+                name: name.clone(),
+                ip: ip.clone(),
+            };
+
+            hosts.push(h);
+        }
+ 
+        println!("After sync...", )
+
+        // let json = serde_json::to_string(&HostFile { hosts: hosts });
+        // println!("{}", json.unwrap());
     }
 
     fn get_authorized(path: &str) -> HashMap<String, String> {
@@ -71,6 +105,8 @@ impl DDOS {
             let mut secret = String::new();
             secret_f.read_to_string(&mut secret).unwrap();
             drop(secret_f);
+
+            LOG.status(&secret);
 
             /* Store name-secret combo in map */
             LOG.status(&format!("Scoped a secret for '{}'", &name));

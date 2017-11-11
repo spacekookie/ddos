@@ -8,6 +8,7 @@
 extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
+extern crate serde_json;
 
 extern crate clap;
 extern crate toml;
@@ -46,7 +47,7 @@ const DEF_PORT: &'static str = "8001";
 const DEF_CONFIG: &'static str = "ddos.toml";
 const DEF_HOOKS: &'static str = "ddos.lua";
 const DEF_HOSTS: &'static str = "hosts.json";
-const DEF_KEYS: &'static str = "keys/";
+const DEF_KEYS: &'static str = "auths/";
 
 static LOG: Errors = Errors { name: APP_NAME, version: APP_VERSION };
 
@@ -103,6 +104,8 @@ fn main() {
     });
 
     LOG.log("Loaded config successfully!", ErrorType::Status);
+
+    LOG.log(keys_path, ErrorType::Status);
 
     /* Initialise the main state and try (🤞) to load required files */
     let state = DDOS::new(lua_path, hosts_path, keys_path, port);
