@@ -3,7 +3,7 @@
 use rocket;
 use rocket::State;
 use rocket_contrib::Json;
-use core::DDOS;
+use state::DDOS;
 
 use security::{secret_compare, Signature};
 
