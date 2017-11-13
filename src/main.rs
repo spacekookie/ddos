@@ -24,11 +24,12 @@ mod parameters;
 mod errors;
 use errors::{Errors, ErrorType};
 
-mod core;
-use core::DDOS;
+mod state;
+use state::DDOS;
 
 mod security;
 mod rest;
+mod dns;
 
 
 /// Struct that represents a TOML configuration on disk

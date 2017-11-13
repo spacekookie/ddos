@@ -2,23 +2,24 @@
 
 // stdlib dependencies
 use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 use std::sync::Mutex;
 use std::fs::*;
-use std::ffi::*;
 use std::io::prelude::*;
 use std::collections::*;
-
 use serde_json;
 
 use LOG;
 
 
+/// Represents the json config which should become it's own module
 #[derive(Serialize, Deserialize)]
 struct HostFile {
     hosts: Vec<Host>,
 }
 
-
+/// Represents a host in the json config
 #[derive(Serialize, Deserialize)]
 struct Host {
     name: String,
@@ -31,49 +32,47 @@ pub struct DDOS {
     pub keys: Mutex<HashMap<String, String>>,
     pub lua: String,
     pub api_port: u32,
+    host_path: String,
+    key_path: String,
 }
 
 
 impl DDOS {
-    
     #[allow(unused_variables)]
     pub fn new(lua_path: &str, host_path: &str, key_path: &str, port: u32) -> DDOS {
-          
+
         /* Read state from disk */
         let keys = DDOS::get_authorized(key_path);
         let hosts = DDOS::get_hosts(host_path);
 
         return DDOS {
-          lua: String::from(""), 
-          hosts: Mutex::new(hosts), 
-          api_port: port,
-          keys: Mutex::new(keys), 
+            lua: String::from(""),
+            hosts: Mutex::new(hosts),
+            api_port: port,
+            keys: Mutex::new(keys),
+            host_path: String::from(host_path),
+            key_path: String::from(key_path),
         };
     }
 
     /// A function that syncs the current state to disk
     pub fn sync(&self) {
-        println!("Starting sync...");
 
-        let k = self.keys.lock().unwrap();
+        /* Lock the hosts store */
+        let h = self.hosts.lock().unwrap();
 
         /* Move the hosts into a convenient list we can serialise */
         let mut hosts: Vec<Host> = Vec::new();
-        for (name, ip) in k.iter() {
-
-            println!("{} ->{}", name, ip);
-            let h = Host {
+        for (name, ip) in h.iter() {
+            hosts.push(Host {
                 name: name.clone(),
                 ip: ip.clone(),
-            };
-
-            hosts.push(h);
+            });
         }
- 
-        println!("After sync...", )
 
-        // let json = serde_json::to_string(&HostFile { hosts: hosts });
-        // println!("{}", json.unwrap());
+        let json = serde_json::to_string(&HostFile { hosts: hosts });
+        let file = File::open(&self.host_path);
+        // write!(file, "{:?}", json);
     }
 
     fn get_authorized(path: &str) -> HashMap<String, String> {
@@ -116,48 +115,8 @@ impl DDOS {
         return auth;
     }
 
-
-    /// Read keys from a directory that we already know exists
-    fn get_keys(path: &str) -> Vec<String> {
-        let mut keys: Vec<String> = Vec::new();
-
-        /*  */
-        let items = match fs::read_dir(path) {
-            Ok(file) => file,
-            _ => return Vec::new()
-        };
-
-        LOG.status("Opened key directory");
-
-        for item in items {
-            let path = match item {
-                Ok(i) => i.path(),
-                _ => continue,
-            };
-
-            /* If it's not a public key */
-            let extension = path.extension();
-            if extension != Some(OsStr::new("pub")){
-                continue;
-            }
-
-            let ppp = path.clone().into_os_string().into_string();
-            LOG.status(&format!("Loading authorised pub key: {:?}", ppp.unwrap()));
-
-            let mut key_file = File::open(&path).unwrap();
-            let mut key_str = String::new();
-            key_file.read_to_string(&mut key_str).unwrap();
-            drop(key_file);
-
-            // LOG.status(&format!("Adding keyfile {}", key_str));
-            keys.push(key_str);
-        }
-
-        return keys;
-    }
-
     fn get_hosts(path: &str) -> HashMap<String, String> {
-        let mut hosts: HashMap<String, String> = HashMap::new();
+        let mut hosts = HashMap::new();
 
         // TODO: Read data from some form of config!
         let k = String::from("kookiejar.tech");
