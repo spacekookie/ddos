@@ -82,14 +82,21 @@
 //     return cfg_toml;
 // }
 
+use std::ffi::CString;
+use std::os::raw::c_char;
+use std::collections::HashMap;
 
-extern { 
-    fn easy_start();
-}
+mod dns;
+use dns::DNS;
+
+
 
 fn main() {
-    println!("Something something!");
-    unsafe { easy_start(); }
+
+    // This is only for testing!
+    let hm: HashMap<String, String> = HashMap::new();
+    let mutex = std::sync::Mutex::new(hm);
+    let dns = DNS::new(&mutex);
 }
 
 // Main application entry point
