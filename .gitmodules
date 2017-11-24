@@ -1,3 +1,0 @@
-[submodule "luadns"]
-	path = libluadns
-	url = https://github.com/spacekookie/luadns.git
