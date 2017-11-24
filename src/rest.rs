@@ -55,7 +55,8 @@ fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) -> Strin
         return format!("SIGNATURE WRONG")
     }
 
-    let mut m = state.hosts.lock().unwrap();
+    let mut m = state.hosts.lockcallback
+callback().unwrap();
     m.insert(host_data.name.clone(), host_data.ip.clone());
 
     // Dropping keys scope so we can lock it again later
