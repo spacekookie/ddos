@@ -11,41 +11,18 @@
 // #include <lua.h>
 // #include <lualib.h>
 #include <lauxlib.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <ifaddrs.h>
 #include <string.h>
-#include <malloc.h>
 #include <errno.h>
-#include <string.h>
-#include <stdint.h>
 #include <unistd.h>
 
 #define BUF_SIZE 2048
 
-/*
-* This software is licensed under the Public Domain.
-*
-* This is a _basic_ DNS Server for educational use.
-*  It doesn't prevent invalid packets from crashing
-*  the server.
-*
-* To test start the program and issue a DNS request:
-*  dig @127.0.0.1 -p 9000 foo.bar.com 
-*/
+const void *callbackARecord;
+const void *callbackAAAARecord;
+const void *ddos_state;
 
-// lua_State *L;
-
-/* Callback functions in rust */
-void *callbackARecord;
-void *callbackAAAARecord;
-
-/*
-* Masks and constants.
-*/
 
 static const uint32_t QR_MASK = 0x8000;
 static const uint32_t OPCODE_MASK = 0x7800;
@@ -55,7 +32,6 @@ static const uint32_t RD_MASK = 0x0100;
 static const uint32_t RA_MASK = 0x8000;
 static const uint32_t RCODE_MASK = 0x000F;
 
-/* Response Type */
 enum {
   Ok_ResponseType = 0,
   FormatError_ResponseType = 1,
@@ -65,7 +41,6 @@ enum {
   Refused_ResponseType = 5
 };
 
-/* Resource Record Types */
 enum {
   A_Resource_RecordType = 1,
   NS_Resource_RecordType = 2,
@@ -78,16 +53,14 @@ enum {
   SRV_Resource_RecordType = 33
 };
 
-/* Operation Code */
 enum {
-  QUERY_OperationCode = 0, /* standard query */
-  IQUERY_OperationCode = 1, /* inverse query */
-  STATUS_OperationCode = 2, /* server status request */
-  NOTIFY_OperationCode = 4, /* request zone transfer */
-  UPDATE_OperationCode = 5 /* change resource records */
+  QUERY_OperationCode = 0,
+  IQUERY_OperationCode = 1,
+  STATUS_OperationCode = 2,
+  NOTIFY_OperationCode = 4,
+  UPDATE_OperationCode = 5
 };
 
-/* Response Code */
 enum {
   NoError_ResponseCode = 0,
   FormatError_ResponseCode = 1,
@@ -95,7 +68,6 @@ enum {
   NameError_ResponseCode = 3
 };
 
-/* Query Type */
 enum {
   IXFR_QueryType = 251,
   AXFR_QueryType = 252,
@@ -108,7 +80,6 @@ enum {
 * Types.
 */
 
-/* Question Section */
 struct Question {
   char *qName;
   uint16_t qType;
@@ -116,7 +87,6 @@ struct Question {
   struct Question* next; // for linked list
 };
 
-/* Data part of a Resource Record */
 union ResourceData {
   struct {
     char *txt_data;
@@ -157,7 +127,6 @@ union ResourceData {
   } srv_record;
 };
 
-/* Resource Record Section */
 struct ResourceRecord {
   char *name;
   uint16_t type;
@@ -169,30 +138,23 @@ struct ResourceRecord {
 };
 
 struct Message {
-  uint16_t id; /* Identifier */
+  uint16_t id;
 
-  /* Flags */
-  uint16_t qr; /* Query/Response Flag */
-  uint16_t opcode; /* Operation Code */
-  uint16_t aa; /* Authoritative Answer Flag */
-  uint16_t tc; /* Truncation Flag */
-  uint16_t rd; /* Recursion Desired */
-  uint16_t ra; /* Recursion Available */
-  uint16_t rcode; /* Response Code */
+ 
+  uint16_t qr;
+  uint16_t opcode;
+  uint16_t aa;
+  uint16_t tc;
+  uint16_t rd;
+  uint16_t ra;
+  uint16_t rcode;
 
-  uint16_t qdCount; /* Question Count */
-  uint16_t anCount; /* Answer Record Count */
-  uint16_t nsCount; /* Authority Record Count */
-  uint16_t arCount; /* Additional Record Count */
-
-  /* At least one question; questions are copied to the response 1:1 */
+  uint16_t qdCount;
+  uint16_t anCount;
+  uint16_t nsCount;
+  uint16_t arCount;
+ 
   struct Question* questions;
-
-  /*
-  * Resource records to be send back.
-  * Every resource record can be in any of the following places.
-  * But every place has a different semantic.
-  */
   struct ResourceRecord* answers;
   struct ResourceRecord* authorities;
   struct ResourceRecord* additionals;
@@ -229,13 +191,7 @@ int get_AAAA_Record(uint8_t addr[16], const char domain_name[], struct sockaddr_
   //     lua_pop(L,1);
   //   }
     return 0;
-  // }
 }
-
-
-/*
-* Debugging functions.
-*/
 
 void print_hex(uint8_t* buf, size_t len)
 {
@@ -350,11 +306,6 @@ void print_query(struct Message* msg)
   printf("}\n");
 }
 
-
-/*
-* Basic memory operations.
-*/
-
 size_t get16bits(const uint8_t** buffer)
 {
   uint16_t value;
@@ -383,10 +334,6 @@ void put32bits(uint8_t** buffer, uint64_t value)
   *buffer += 4;
 }
 
-/*
-* Deconding/Encoding functions.
-*/
-
 // 3foo3bar3com0 => foo.bar.com
 char* decode_domain_name(const uint8_t** buffer)
 {
@@ -394,13 +341,11 @@ char* decode_domain_name(const uint8_t** buffer)
   const uint8_t* buf = *buffer;
   int j = 0;
   int i = 0;
-  while(buf[i] != 0)
-  {
+  while(buf[i] != 0) {
     //if(i >= buflen || i > sizeof(name))
     //  return NULL;
     
-    if(i != 0)
-    {
+    if(i != 0) {
       name[j] = '.';
       j += 1;
     }
@@ -415,7 +360,7 @@ char* decode_domain_name(const uint8_t** buffer)
 
   name[j] = '\0';
 
-  *buffer += i + 1; //also jump over the last 0
+  *buffer += i + 1;
 
   return strdup(name);
 }
@@ -429,8 +374,7 @@ void encode_domain_name(uint8_t** buffer, const uint8_t* domain)
   int len = 0;
   int i = 0;
 
-  while(pos = strchr(beg, '.'))
-  {
+  while(pos = strchr(beg, '.')) {
     len = pos - beg;
     buf[i] = len;
     i += 1;
@@ -481,7 +425,6 @@ void encode_header(struct Message* msg, uint8_t** buffer)
   int fields = 0;
   fields |= (msg->qr << 15) & QR_MASK;
   fields |= (msg->rcode << 0) & RCODE_MASK;
-  // TODO: insert the rest of the fields
   put16bits(buffer, fields);
 
   put16bits(buffer, msg->qdCount);
@@ -492,40 +435,30 @@ void encode_header(struct Message* msg, uint8_t** buffer)
 
 int decode_msg(struct Message* msg, const uint8_t* buffer, int size)
 {
-  char name[300];
-  int i;
-
   decode_header(msg, &buffer);
 
-  if((msg->anCount+msg->nsCount) != 0)
-  {
+  if((msg->anCount+msg->nsCount) != 0) {
     printf("Only questions expected!\n");
     return -1;
   }
 
-  // parse questions
   uint32_t qcount = msg->qdCount;
   struct Question* qs = msg->questions;
-  for(i = 0; i < qcount; ++i)
-  {
+  
+  int i;
+  for(i = 0; i < qcount; ++i) {
     struct Question* q = malloc(sizeof(struct Question));
-
     q->qName = decode_domain_name(&buffer);
     q->qType = get16bits(&buffer);
     q->qClass = get16bits(&buffer);
 
-    //prepend question to questions list
     q->next = qs; 
     msg->questions = q;
   }
 
-  // We do not expect any resource records to parse here.
-
   return 0;
 }
 
-// For every question in the message add a appropiate resource record
-// in either section 'answers', 'authorities' or 'additionals'.
 void resolver_process(struct Message* msg,struct sockaddr_in* client_addr)
 {
   struct ResourceRecord* beg;
@@ -533,21 +466,16 @@ void resolver_process(struct Message* msg,struct sockaddr_in* client_addr)
   struct Question* q;
   int rc;
 
-  // leave most values intact for response
-  msg->qr = 1; // this is a response
-  msg->aa = 1; // this server is authoritative
-  msg->ra = 0; // no recursion available
+  msg->qr = 1;
+  msg->aa = 1;
+  msg->ra = 0;
   msg->rcode = Ok_ResponseType;
-
-  //should already be 0
   msg->anCount = 0;
   msg->nsCount = 0;
   msg->arCount = 0;
 
-  //for every question append resource records
   q = msg->questions;
-  while(q)
-  {
+  while(q) {
     rr = malloc(sizeof(struct ResourceRecord));
 
     rr->name = strdup(q->qName);
@@ -555,34 +483,19 @@ void resolver_process(struct Message* msg,struct sockaddr_in* client_addr)
     rr->class = q->qClass;
     rr->ttl = 60*60; //in seconds; 0 means no caching
     
-    printf("Query for '%s'\n", q->qName);
-    
-    // We only can only answer two question types so far
-    // and the answer (resource records) will be all put
-    // into the answers list.
-    // This behavior is probably non-standard!
-    switch(q->qType)
-    {
+    switch(q->qType) {
       case A_Resource_RecordType:
         rr->rd_length = 4;
-        rc = get_A_Record(rr->rd_data.a_record.addr, q->qName,client_addr);
+        rc = get_A_Record(rr->rd_data.a_record.addr, q->qName, client_addr);
         if(rc < 0)
           goto next;
         break;
       case AAAA_Resource_RecordType:
         rr->rd_length = 16;
-        rc = get_AAAA_Record(rr->rd_data.aaaa_record.addr, q->qName,client_addr);
+        rc = get_AAAA_Record(rr->rd_data.aaaa_record.addr, q->qName, client_addr);
         if(rc < 0)
           goto next;
         break;
-      /*
-      case NS_Resource_RecordType:
-      case CNAME_Resource_RecordType:
-      case SOA_Resource_RecordType:
-      case PTR_Resource_RecordType:
-      case MX_Resource_RecordType:
-      case TXT_Resource_RecordType:
-      */
       default:
         msg->rcode = NotImplemented_ResponseType;
         printf("Cannot answer question of type %d.\n", q->qType);
@@ -590,25 +503,18 @@ void resolver_process(struct Message* msg,struct sockaddr_in* client_addr)
     }
 
     msg->anCount++;
-
-    // prepend resource record to answers list
     beg = msg->answers;
     msg->answers = rr;
     rr->next = beg;
 
-    //jump here to omit question
-    next:
-    
-    // process next question
-    q = q->next;
+    next: q = q->next;
   }
 }
 
 int encode_resource_records(struct ResourceRecord* rr, uint8_t** buffer)
 {
   int i;
-  while(rr)
-  {
+  while(rr) {
     // Answer questions by attaching resource sections.
     encode_domain_name(buffer, rr->name);
     put16bits(buffer, rr->type);
@@ -685,15 +591,8 @@ void free_questions(struct Question* qq)
   }
 }
 
-int luadns_start(const char *script)
+int ddos_dns_start(int _port)
 {
-  printf("Inside C!\n");
-
-  if(access(script, F_OK) == -1) {
-    printf("Provided script file doesn't exist!\n");
-    exit(errno);
-  }
-
   // L = luaL_newstate();
 
   // luaL_openlibs(L);
@@ -710,7 +609,7 @@ int luadns_start(const char *script)
   struct sockaddr_in addr;
   int nbytes, rc, buflen;
   int sock;
-  int port = 9000;
+  int port = _port;
 
   struct Message msg;
 
@@ -719,19 +618,16 @@ int luadns_start(const char *script)
   addr.sin_port = htons(port);
 
   sock = socket(AF_INET, SOCK_DGRAM, 0);
-
   rc = bind(sock, (struct sockaddr*) &addr, addr_len);
 
-  if(rc != 0)
-  {
+  if(rc != 0) {
     printf("Could not bind: %s\n", strerror(errno));
     return 1;
   }
 
   printf("Listening on port %u.\n", port);
 
-  while(1)
-  {
+  while(1) {
     memset(&msg, 0, sizeof(struct Message));
 
     free_questions(msg.questions);
@@ -746,12 +642,8 @@ int luadns_start(const char *script)
       continue;
     }
 
-    /* Print query */
     print_query(&msg);
-
-    resolver_process(&msg,&client_addr);
-
-    /* Print response */
+    resolver_process(&msg,&client_addr);   
     print_query(&msg);
 
     uint8_t *p = buffer;
