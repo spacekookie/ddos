@@ -1,7 +1,12 @@
+// libddos is based on SimpleDNS which was 
+//   initially written by Moritz Warning
+// Repository can be found here: https://github.com/mwarning/SimpleDNS
+// See the LICENSE file in this directory for
+//   more information.
 
 
 #define _BSD_SOURCE
-#include "luadns.h"
+#include "ddos.h"
 
 // #include <lua.h>
 // #include <lualib.h>
