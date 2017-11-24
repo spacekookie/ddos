@@ -1,11 +1,7 @@
 extern crate cmake;
 
 fn main() {
-    let dst = cmake::build("libluadns");
-
+    let dst = cmake::build("libddos");
     println!("cargo:rustc-link-search=native={}", dst.display());
-    println!("cargo:rustc-link-lib=static=luadns");
-
-    println!("cargo:rustc-link-search=native=/usr/lib");
-    println!("cargo:rustc-link-lib=luajit-5.1");
+    println!("cargo:rustc-link-lib=static=ddos");
 }

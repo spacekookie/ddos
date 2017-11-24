@@ -3,8 +3,8 @@
 #define _BSD_SOURCE
 #include "luadns.h"
 
-#include <lua.h>
-#include <lualib.h>
+// #include <lua.h>
+// #include <lualib.h>
 #include <lauxlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@
 *  dig @127.0.0.1 -p 9000 foo.bar.com 
 */
 
-lua_State *L;
+// lua_State *L;
 
 /* Callback functions in rust */
 void *callbackARecord;
@@ -195,36 +195,36 @@ struct Message {
 
 int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* client_addr)
 {
-  lua_getglobal(L,"AQuery");
-  lua_pushstring(L,domain_name);
-  lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
-  if(lua_pcall(L,2,LUA_MULTRET,0)){
-    fprintf(stderr, "Couldn't run AQuery: %s\n", lua_tostring(L, -1));
-    return -1;
-  }else{
-    for(int i=3;i>=0;i--){
-      addr[i] = lua_tonumber(L, -1);
-      lua_pop(L,1);
-    }
+  // lua_getglobal(L,"AQuery");
+  // lua_pushstring(L,domain_name);
+  // lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
+  // if(lua_pcall(L,2,LUA_MULTRET,0)){
+    // fprintf(stderr, "Couldn't run AQuery: %s\n", lua_tostring(L, -1));
+    // return -1;
+  // }else{
+    // for(int i=3;i>=0;i--){
+      // addr[i] = lua_tonumber(L, -1);
+      // lua_pop(L,1);
+    // }
     return 0;
-  }
+  // }
 }
 
 int get_AAAA_Record(uint8_t addr[16], const char domain_name[], struct sockaddr_in* client_addr)
 {
-  lua_getglobal(L,"AAAAQuery");
-  lua_pushstring(L,domain_name);
-  lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
-  if(lua_pcall(L,2,LUA_MULTRET,0)){
-    fprintf(stderr, "Couldn't run AAAAQuery: %s\n", lua_tostring(L, -1));
-    return -1;
-  }else{
-    for(int i=15;i>=0;i--){
-      addr[i] = lua_tonumber(L, -1);
-      lua_pop(L,1);
-    }
+  // lua_getglobal(L,"AAAAQuery");
+  // lua_pushstring(L,domain_name);
+  // lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
+  // if(lua_pcall(L,2,LUA_MULTRET,0)){
+  //   fprintf(stderr, "Couldn't run AAAAQuery: %s\n", lua_tostring(L, -1));
+  //   return -1;
+  // }else{
+  //   for(int i=15;i>=0;i--){
+  //     addr[i] = lua_tonumber(L, -1);
+  //     lua_pop(L,1);
+  //   }
     return 0;
-  }
+  // }
 }
 
 
@@ -689,14 +689,15 @@ int luadns_start(const char *script)
     exit(errno);
   }
 
-  L = luaL_newstate();
+  // L = luaL_newstate();
 
-  luaL_openlibs(L);
-  if(luaL_dofile(L, script)){
-    fprintf(stderr, "Couldn't load script: %s\n", lua_tostring(L, -1));
-    lua_close(L);
-    exit(1);
-  }
+  // luaL_openlibs(L);
+  // if(luaL_dofile(L, script)){
+  //   fprintf(stderr, "Couldn't load script: %s\n", lua_tostring(L, -1));
+  //   lua_close(L);
+  //   exit(1);
+  // }
+
   // buffer for input/output binary packet
   uint8_t buffer[BUF_SIZE];
   struct sockaddr_in client_addr;
