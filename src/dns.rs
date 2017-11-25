@@ -6,6 +6,7 @@
 
 use std::ffi::CString;
 use std::ffi::CStr;
+use std::os::raw::c_void;
 use std::os::raw::c_char;
 use std::thread;
 
@@ -15,8 +16,8 @@ use std::collections::HashMap;
 
 extern "C" {
     fn ddos_dns_start(port: i32);
-    fn ddos_register_state(state: &DNS);
-    fn ddos_register_callback(t: i32, cb: extern "C" fn(&DNS, *const c_char) -> [u32; 16]);
+    fn ddos_register_state(state: &Mutex<HashMap<String, String>>);
+    fn ddos_register_callback(t: i32, cb: extern "C" fn(*const c_void, *const c_char) -> [u32; 16]);
 }
 
 
@@ -36,7 +37,7 @@ impl<'a> DNS<'a> {
 
     pub fn start(&mut self, port: i32) {
         unsafe {
-            ddos_register_state(self);
+            ddos_register_state(self.state);
             ddos_register_callback(4, cb_a_record);
             ddos_register_callback(6, cb_aaaa_record);
         }
@@ -60,24 +61,23 @@ fn ipv4_to_ipv6(v4: [u32; 4]) -> [u32; 16] {
 }
 
 /// A callback function which fetches the A-record section from a host
-extern "C" fn cb_a_record(state: &DNS, host: *const c_char) -> [u32; 16] {
-    unsafe {
-        let slice = CStr::from_ptr(host);
-        println!("string returned: {}", slice.to_str().unwrap());
+extern "C" fn cb_a_record(state: *const c_void, host: *const c_char) -> [u32; 16] {
+    println!("CALLBACK!");
+    
+    let state_data: &Mutex<HashMap<String, String>> = unsafe { &*(state as *const Mutex<HashMap<String, String>>) };
+    let host_name = unsafe { CStr::from_ptr(host) };
 
-        // let c_str: &CStr = CStr::from_ptr(host);
-        // println!("{:?}", c_str);
-
-        // let str_slice: &str = c_str.to_str().unwrap();
-        // println!("{:?}", str_slice);
-    }
+    /* Find out if we know this host  */
+    let mut known_hosts: &HashMap<String, String> = &*state_data.lock().unwrap();
 
     let var = ipv4_to_ipv6([123, 123, 123, 123]);
     return var;
 }
 
 /// A callback function which fetches the AAAA-record (ipv6) data from a host
-extern "C" fn cb_aaaa_record(state: &DNS, host: *const c_char) -> [u32; 16] {
+extern "C" fn cb_aaaa_record(state: *const c_void, host: *const c_char) -> [u32; 16] {
+    let h = unsafe { CStr::from_ptr(host) };
+
     let var: [u32; 16] = [123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123];
     return var;
 }
