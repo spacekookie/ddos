@@ -4,12 +4,7 @@
 // See the LICENSE file in this directory for
 //   more information.
 
-
-#define _BSD_SOURCE
 #include "ddos.h"
-
-// #include <lua.h>
-// #include <lualib.h>
 #include <lauxlib.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -19,10 +14,12 @@
 
 #define BUF_SIZE 2048
 
-const void *callbackARecord;
-const void *callbackAAAARecord;
-const void *ddos_state;
+/* A callback handle is: Rust state, host name */
+typedef int* (*CallbackHandle)(const void *, const char *);
 
+CallbackHandle callbackARecord;
+CallbackHandle callbackAAAARecord;
+const void *ddos_state;
 
 static const uint32_t QR_MASK = 0x8000;
 static const uint32_t OPCODE_MASK = 0x7800;
@@ -160,37 +157,38 @@ struct Message {
   struct ResourceRecord* additionals;
 };
 
+char *to_nice_string(const char domain_name[]) {
+  char *str = calloc(sizeof(char), strlen(domain_name) + 1);
+  strcpy(str, domain_name);
+  return str;
+}
+
+void my_string(void (*cb)(const char *)) {
+  cb(to_nice_string("Does this work?"));
+}
+
 int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* client_addr)
 {
-  // lua_getglobal(L,"AQuery");
-  // lua_pushstring(L,domain_name);
-  // lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
-  // if(lua_pcall(L,2,LUA_MULTRET,0)){
-    // fprintf(stderr, "Couldn't run AQuery: %s\n", lua_tostring(L, -1));
-    // return -1;
-  // }else{
-    // for(int i=3;i>=0;i--){
-      // addr[i] = lua_tonumber(L, -1);
-      // lua_pop(L,1);
-    // }
-    return 0;
-  // }
+  const char *domain = to_nice_string(domain_name);
+  printf("Domain: %s\n", domain);
+  int *address = callbackARecord(ddos_state, domain);
+  free(domain);
+  for(int i = 0; i < 4; i++) {
+    addr[i] = (uint8_t) address[i];
+  }
+  return 0;
 }
 
 int get_AAAA_Record(uint8_t addr[16], const char domain_name[], struct sockaddr_in* client_addr)
 {
-  // lua_getglobal(L,"AAAAQuery");
-  // lua_pushstring(L,domain_name);
-  // lua_pushstring(L,inet_ntoa(client_addr->sin_addr));
-  // if(lua_pcall(L,2,LUA_MULTRET,0)){
-  //   fprintf(stderr, "Couldn't run AAAAQuery: %s\n", lua_tostring(L, -1));
-  //   return -1;
-  // }else{
-  //   for(int i=15;i>=0;i--){
-  //     addr[i] = lua_tonumber(L, -1);
-  //     lua_pop(L,1);
-  //   }
-    return 0;
+  const char *domain = to_nice_string(domain_name);
+  printf("Domain: %s\n", domain);
+  int *address = callbackAAAARecord(ddos_state, domain);
+  free(domain);
+  for(int i = 0; i < 16; i++) {
+    addr[i] = (uint8_t) address[i];
+  }
+  return 0;
 }
 
 void print_hex(uint8_t* buf, size_t len)
@@ -653,5 +651,28 @@ int ddos_dns_start(int _port)
 
     int buflen = p - buffer;
     sendto(sock, buffer, buflen, 0, (struct sockaddr*) &client_addr, addr_len);
+  }
+}
+
+/** Register the state of a DDOS application */
+void ddos_register_state(const void *state)
+{
+  ddos_state = state;
+}
+
+/** Register a single callback function */
+void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
+{
+  printf("Regostering callback handle for type %d\n", type);
+  switch(type) {
+    case 4: 
+      callbackARecord = cb;
+      break;
+    case 6: 
+      callbackAAAARecord = cb;
+      break;
+    default:
+      printf("Error: What are you on about? '%c'", type); 
+      break;
   }
 }
