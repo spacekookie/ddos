@@ -82,39 +82,39 @@
 //     return cfg_toml;
 // }
 
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::os::raw::c_char;
+// use std::ffi::CStr;
+// use std::ffi::CString;
+// use std::os::raw::c_char;
 use std::collections::HashMap;
 
-// mod dns;
-// use dns::DNS;
+mod dns;
+use dns::DNS;
 
 
 // use std::os::raw::c_char;
 
-extern {
-    fn my_string(cb: extern "C" fn(*const c_char));
-    // fn my_string() -> *const c_char;
-}
+// extern {
+//     fn my_string(cb: extern "C" fn(*const c_char));
+//     // fn my_string() -> *const c_char;
+// }
 
-extern "C" fn my_callback(string: *const c_char) {
-    unsafe {
-        let slice = CStr::from_ptr(string);
-        println!("string returned: {}", slice.to_str().unwrap());
-    }
-}
+// extern "C" fn my_callback(string: *const c_char) {
+//     unsafe {
+//         let slice = CStr::from_ptr(string);
+//         println!("string returned: {}", slice.to_str().unwrap());
+//     }
+// }
 
 fn main() {
-    unsafe {
-        my_string(my_callback);
-    }
+    // unsafe {
+    //     my_string(my_callback);
+    // }
 
     // This is only for testing!
-    // let hm: HashMap<String, String> = HashMap::new();
-    // let mutex = std::sync::Mutex::new(hm);
-    // let mut dns = DNS::new(&mutex);
-    // dns.start(9999);
+    let hm: HashMap<String, String> = HashMap::new();
+    let mutex = std::sync::Mutex::new(hm);
+    let mut dns = DNS::new(&mutex);
+    dns.start(9999);
 }
 
 // Main application entry point

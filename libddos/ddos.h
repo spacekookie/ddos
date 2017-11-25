@@ -8,5 +8,3 @@ void ddos_register_state(const void *);
 
 /** Register a single callback function */
 void ddos_register_callback(int type, int* (*cb)(const void *, const char *));
-
-void my_string(void (*cb)(const char *));
