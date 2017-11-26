@@ -9,6 +9,8 @@ void ddos_register_state(void *);
 /** Register a single callback function */
 void ddos_register_callback(int type, int* (*cb)(const void *, const char *));
 
+void start_server(int port);
+
 void set_state(void *);
 
 void set_callback(int (*cb)(const void *, const char *));

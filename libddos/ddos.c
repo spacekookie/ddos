@@ -23,6 +23,10 @@ CallbackHandle callbackARecord;
 CallbackHandle callbackAAAARecord;
 static void *ddos_state;
 
+static void *state;
+static TestCallBack callack;
+
+
 static const uint32_t QR_MASK = 0x8000;
 static const uint32_t OPCODE_MASK = 0x7800;
 static const uint32_t AA_MASK = 0x0400;
@@ -172,14 +176,16 @@ void my_string(void (*cb)(const char *)) {
 int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* client_addr)
 {
   // printf("DDOS state: %s\n\0", &ddos_state);
-  printf("%p\n", ddos_state);
+  // printf("%p\n", ddos_state);
 
   char dom[strlen(domain_name) + 1];
   memcpy(dom, domain_name, strlen(domain_name));
-  int *address = callbackARecord(ddos_state, "to_nice_string(dom)");
-  for(int i = 0; i < 4; i++) {
-    addr[i] = (uint8_t) address[i];
-  }
+  // int *address = callbackARecord(ddos_state, "to_nice_string(dom)");
+  int addrrr = callack(state, "Yes!");
+
+  // for(int i = 0; i < 4; i++) {
+  //   addr[i] = (uint8_t) address[i];
+  // }
   return 0;
 }
 
@@ -683,12 +689,14 @@ void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
 
 /********************************/
 
-static void *state;
-static TestCallBack callack;
-
 void set_state(void *s)
 {
   state = s;
+}
+
+void start_dns_server(int port) {
+  // printf("Yup!\n");
+  ddos_dns_start(port);
 }
 
 void set_callback(int (*cb)(const void *, const char *))
