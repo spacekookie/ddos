@@ -4,36 +4,60 @@
 //!   DNS implementation.
 
 
-use std::ffi::CString;
-use std::ffi::CStr;
-use std::os::raw::c_void;
-use std::os::raw::c_char;
+use std::ffi::{CString, CStr};
+use std::os::raw::{c_int, c_void, c_char};
 use std::thread;
 
-use std::sync::Mutex;
 use std::collections::HashMap;
+use std::sync::Mutex;
 
-
+/// The main state held (and given to C) for DNS resolution
 pub struct DNState<'a> {
     val: &'a Mutex<HashMap<String, String>>
+}
+
+/// A struct that represents an IP address between Rust and C.
+/// Has always 16 places for compatibility with IPv6
+#[repr(C)]
+pub struct IPAddress {
+    addr: [c_int; 16]
 }
 
 extern {
     fn start_dns_server(port: i32);
     fn set_state(state: &DNState);
-    fn set_callback(cb: extern "C" fn(*const c_void, *const c_char) -> i32);
+    fn set_callback(_type: i32, cb: extern "C" fn(*const c_void, *const c_char) -> IPAddress);
     fn do_fun_stuff();
 }
 
-extern "C" fn my_callback(state: *const c_void, string: *const c_char) -> i32 {
-    println!("!!! CALLBACK !!!");
-    let other_string = unsafe { CStr::from_ptr(string).to_str().unwrap() };
-    println!("Other string: {}", other_string);
 
+/// A simple function which resolves IPv4 queries in our known hosts hashtable
+extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAddress {
+    let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
-    println!("{:?}", state_data.val.lock().unwrap().get("foo").unwrap());
+    let host_data = state_data.val.lock().unwrap();
 
-    return 666;
+    let ip = match host_data.get(host_name) {
+        Some(val) => {
+            let split = val.split(".");
+
+            let mut ctr = 0;
+            let mut addr: [i32; 16] = [0; 16];
+            for s in split {
+                let val = s.parse::<i32>().unwrap();
+                addr[ctr] = val;
+                ctr += 1;
+            }
+
+            return IPAddress { addr: addr };
+        },
+        _ => IPAddress { addr: [127, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+    };
+
+    // VERY important here is to check that 
+    // println!("{:?}", host_data.get("kookiejar.tech").unwrap());
+
+    return IPAddress { addr: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] };
 }
 
 impl<'a> DNState<'a> {
@@ -46,17 +70,19 @@ impl<'a> DNState<'a> {
     pub fn start(&self, port: i32) {
         unsafe {
             set_state(self);
-            set_callback(my_callback);
+            set_callback(4, ipv4_callback);
+            // do_fun_stuff();
+            start_dns_server(port);
         }
 
+        // self.val.lock().unwrap().get("kookiejar.tech2").unwrap();
         
-        let child = thread::spawn(move || {
-            unsafe {
-                start_dns_server(port);
-            }
-        });
-        
-        child.join();
+        // let child = thread::spawn(move || {
+        //     unsafe {
+        //         start_dns_server(port);
+        //     }
+        // });
+        // child.join();
     }
 }
 

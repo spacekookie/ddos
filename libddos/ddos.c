@@ -14,17 +14,15 @@
 
 #define BUF_SIZE 2048
 
-/* A callback handle is: Rust state, host name */
-typedef int* (*CallbackHandle)(const void *, const char *);
+struct IPAddress {
+  int addr[16];
+};
 
-typedef int* (*TestCallBack)(void *, char *);
-
-CallbackHandle callbackARecord;
-CallbackHandle callbackAAAARecord;
-static void *ddos_state;
+typedef struct IPAddress (*CallbackHandle)(void *, char *);
 
 static void *state;
-static TestCallBack callack;
+static CallbackHandle callbackA;
+static CallbackHandle callbackAAAA;
 
 
 static const uint32_t QR_MASK = 0x8000;
@@ -175,17 +173,15 @@ void my_string(void (*cb)(const char *)) {
 
 int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* client_addr)
 {
-  // printf("DDOS state: %s\n\0", &ddos_state);
-  // printf("%p\n", ddos_state);
-
   char dom[strlen(domain_name) + 1];
   memcpy(dom, domain_name, strlen(domain_name));
   // int *address = callbackARecord(ddos_state, "to_nice_string(dom)");
-  int addrrr = callack(state, "Yes!");
+  struct IPAddress address = callbackA(state, "Yes!");
 
-  // for(int i = 0; i < 4; i++) {
-  //   addr[i] = (uint8_t) address[i];
-  // }
+  for(int i = 0; i < 4; i++) {
+    addr[i] = (uint8_t) address.addr[i];
+  }
+
   return 0;
 }
 
@@ -193,10 +189,12 @@ int get_AAAA_Record(uint8_t addr[16], const char domain_name[], struct sockaddr_
 {
   char dom[strlen(domain_name) + 1];
   memcpy(dom, domain_name, strlen(domain_name));
-  int *address = callbackAAAARecord(ddos_state, to_nice_string(dom));
+  struct IPAddress address = callbackAAAA(state, to_nice_string(dom));
+
   for(int i = 0; i < 16; i++) {
-    addr[i] = (uint8_t) address[i];
+    addr[i] = (uint8_t) address.addr[i];
   }
+
   return 0;
 }
 
@@ -598,16 +596,8 @@ void free_questions(struct Question* qq)
   }
 }
 
-int ddos_dns_start(int _port)
+void start_dns_server(int _port)
 {
-  // L = luaL_newstate();
-
-  // luaL_openlibs(L);
-  // if(luaL_dofile(L, script)){
-  //   fprintf(stderr, "Couldn't load script: %s\n", lua_tostring(L, -1));
-  //   lua_close(L);
-  //   exit(1);
-  // }
 
   // buffer for input/output binary packet
   uint8_t buffer[BUF_SIZE];
@@ -649,9 +639,7 @@ int ddos_dns_start(int _port)
       continue;
     }
 
-    print_query(&msg);
     resolver_process(&msg,&client_addr);   
-    print_query(&msg);
 
     uint8_t *p = buffer;
     if(encode_msg(&msg, &p) != 0) {
@@ -663,22 +651,16 @@ int ddos_dns_start(int _port)
   }
 }
 
-/** Register the state of a DDOS application */
-void ddos_register_state(void *state)
-{
-  ddos_state = state;
-}
-
 /** Register a single callback function */
 void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
 {
   printf("Regostering callback handle for type %d\n", type);
   switch(type) {
     case 4: 
-      callbackARecord = cb;
+      callbackA = cb;
       break;
     case 6: 
-      callbackAAAARecord = cb;
+      callbackAAAA = cb;
       break;
     default:
       printf("Error: What are you on about? '%c'", type); 
@@ -694,19 +676,25 @@ void set_state(void *s)
   state = s;
 }
 
-void start_dns_server(int port) {
-  // printf("Yup!\n");
-  ddos_dns_start(port);
-}
-
-void set_callback(int (*cb)(const void *, const char *))
+void set_callback(int type, int (*cb)(const void *, const char *))
 {
-  callack = cb;
+  printf("Setting callback for %i\n", type);
+  switch(type) {
+    case 4: 
+      callbackA = cb;
+      break;
+    case 6: 
+      callbackAAAA = cb;
+      break;
+    default:
+      printf("Error: What are you on about? '%c'", type); 
+      break;
+  }
 }
 
 void do_fun_stuff()
 {
   printf("This is C\n");
-  int i = callack(state, "Yes!");
-  printf("Return was %i\n", i);
+  struct IPAddress addr = callbackA(state, "kookiejar.tech");
+  printf("Return was %i\n", addr.addr[4]);
 }

@@ -135,7 +135,7 @@ fn main() {
 
     // This is only for testing!
     let mut hm: HashMap<String, String> = HashMap::new();
-    hm.insert(String::from("foo"), String::from("bar"));
+    hm.insert(String::from("kookiejar.tech"), String::from("1.2.3.4"));
     let mutex = std::sync::Mutex::new(hm);
     let mut dns = DNState::new(&mutex);
     dns.start(9999);
