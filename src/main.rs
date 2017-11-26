@@ -82,39 +82,62 @@
 //     return cfg_toml;
 // }
 
-// use std::ffi::CStr;
-// use std::ffi::CString;
-// use std::os::raw::c_char;
+use std::ffi::CStr;
+use std::ffi::CString;
+use std::os::raw::c_char;
+use std::os::raw::c_void;
 use std::collections::HashMap;
 
 mod dns;
 use dns::DNS;
 
+use std::sync::Mutex;
+
 
 // use std::os::raw::c_char;
 
-// extern {
-//     fn my_string(cb: extern "C" fn(*const c_char));
-//     // fn my_string() -> *const c_char;
-// }
+struct MyStruct {
+    val: Mutex<HashMap<String, String>>
+}
 
-// extern "C" fn my_callback(string: *const c_char) {
-//     unsafe {
-//         let slice = CStr::from_ptr(string);
-//         println!("string returned: {}", slice.to_str().unwrap());
-//     }
-// }
+extern {
+    fn set_state(state: &MyStruct);
+    fn set_callback(cb: extern "C" fn(*const c_void, *const c_char) -> i32);
+    fn do_fun_stuff();
+}
 
-fn main() {
-    // unsafe {
-    //     my_string(my_callback);
+    // fn my_string(cb: extern "C" fn(*const c_char));
+    // fn my_string() -> *const c_char;
     // }
 
+extern "C" fn my_callback(state: *const c_void, string: *const c_char) -> i32 {
+    println!("!!! CALLBACK !!!");
+    let other_string = unsafe { CStr::from_ptr(string).to_str().unwrap() };
+    println!("Other string: {}", other_string);
+
+    let state_data: &MyStruct = unsafe { &*(state as *const MyStruct) };
+    println!("{:?}", state_data.val.lock().unwrap().get("foo").unwrap());
+
+    return 666;
+}
+
+fn main() {
+
+    let mut hm: HashMap<String, String> = HashMap::new();
+    hm.insert(String::from("foo"), String::from("bar"));
+    let s = MyStruct { val: Mutex::new(hm) };
+
+    unsafe {
+        set_state(&s);
+        set_callback(my_callback);
+        do_fun_stuff();
+    }
+
     // This is only for testing!
-    let hm: HashMap<String, String> = HashMap::new();
-    let mutex = std::sync::Mutex::new(hm);
-    let mut dns = DNS::new(&mutex);
-    dns.start(9999);
+    // let hm: HashMap<String, String> = HashMap::new();
+    // let mutex = std::sync::Mutex::new(hm);
+    // let mut dns = DNS::new(&mutex);
+    // dns.start(9999);
 }
 
 // Main application entry point

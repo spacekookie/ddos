@@ -4,7 +4,13 @@
 int ddos_dns_start(int port);
 
 /** Register the state of a DDOS application */
-void ddos_register_state(const void *);
+void ddos_register_state(void *);
 
 /** Register a single callback function */
 void ddos_register_callback(int type, int* (*cb)(const void *, const char *));
+
+void set_state(void *);
+
+void set_callback(int (*cb)(const void *, const char *));
+
+void do_fun_stuff();
