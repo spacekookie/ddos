@@ -173,10 +173,11 @@ void my_string(void (*cb)(const char *)) {
 
 int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* client_addr)
 {
+  printf("String %s length is: %i\n", domain_name, strlen(domain_name));
   char dom[strlen(domain_name) + 1];
+  memset(dom, 0, strlen(domain_name) + 1);
   memcpy(dom, domain_name, strlen(domain_name));
-  // int *address = callbackARecord(ddos_state, "to_nice_string(dom)");
-  struct IPAddress address = callbackA(state, "Yes!");
+  struct IPAddress address = callbackA(state, &dom);
 
   for(int i = 0; i < 4; i++) {
     addr[i] = (uint8_t) address.addr[i];
@@ -188,8 +189,9 @@ int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* 
 int get_AAAA_Record(uint8_t addr[16], const char domain_name[], struct sockaddr_in* client_addr)
 {
   char dom[strlen(domain_name) + 1];
+  memset(dom, 0, strlen(domain_name) + 1);
   memcpy(dom, domain_name, strlen(domain_name));
-  struct IPAddress address = callbackAAAA(state, to_nice_string(dom));
+  struct IPAddress address = callbackAAAA(state, &dom);
 
   for(int i = 0; i < 16; i++) {
     addr[i] = (uint8_t) address.addr[i];

@@ -36,8 +36,9 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
     let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
     let host_data = state_data.val.lock().unwrap();
+    drop(state_data.val);
 
-    let ip = match host_data.get(host_name) {
+    return match host_data.get(host_name) {
         Some(val) => {
             let split = val.split(".");
 
@@ -53,11 +54,6 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
         },
         _ => IPAddress { addr: [127, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
     };
-
-    // VERY important here is to check that 
-    // println!("{:?}", host_data.get("kookiejar.tech").unwrap());
-
-    return IPAddress { addr: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] };
 }
 
 impl<'a> DNState<'a> {
