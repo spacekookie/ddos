@@ -6,14 +6,15 @@
 
 use std::ffi::{CString, CStr};
 use std::os::raw::{c_int, c_void, c_char};
-use std::thread;
+use std::thread::{spawn, JoinHandle};
 
 use std::collections::HashMap;
 use std::sync::Mutex;
 
 /// The main state held (and given to C) for DNS resolution
-pub struct DNState<'a> {
-    val: &'a Mutex<HashMap<String, String>>
+pub struct DNState {
+    pub hosts: Mutex<HashMap<String, String>>,
+    thread: JoinHandle<()>
 }
 
 /// A struct that represents an IP address between Rust and C.
@@ -30,13 +31,33 @@ extern {
     fn do_fun_stuff();
 }
 
+impl DNState {
+
+    // state: &'a Mutex<HashMap<String, String>>
+    pub fn new(port: i32) -> DNState {
+
+        let dns = DNState {
+            hosts: Mutex::new(HashMap::new()),
+            thread: spawn(move || {
+                unsafe { start_dns_server(port); }
+            }),
+        };
+
+        unsafe {
+            set_state(&dns);
+            set_callback(4, ipv4_callback);
+            set_callback(6, ipv6_callback);
+        }
+
+        return dns;
+    }
+}
 
 /// A simple function which resolves IPv4 queries in our known hosts hashtable
 extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAddress {
     let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
-    let host_data = state_data.val.lock().unwrap();
-    drop(state_data.val);
+    let host_data = state_data.hosts.lock().unwrap();
 
     return match host_data.get(host_name) {
         Some(val) => {
@@ -60,8 +81,7 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
 extern "C" fn ipv6_callback(state: *const c_void, string: *const c_char) -> IPAddress {
     let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
-    let host_data = state_data.val.lock().unwrap();
-    drop(state_data.val);
+    let host_data = state_data.hosts.lock().unwrap();
 
     return match host_data.get(host_name) {
         Some(val) => {
@@ -79,28 +99,4 @@ extern "C" fn ipv6_callback(state: *const c_void, string: *const c_char) -> IPAd
         },
         _ => IPAddress { addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] }
     };
-}
-
-impl<'a> DNState<'a> {
-    pub fn new(state: &'a Mutex<HashMap<String, String>>) -> DNState {
-        return DNState {
-            val: state
-        };
-    }
-
-    pub fn start(&self, port: i32) {
-        unsafe {
-            set_state(self);
-            set_callback(4, ipv4_callback);
-            set_callback(6, ipv6_callback);
-            start_dns_server(port);
-        }
-
-        // let child = thread::spawn(move || {
-        //     unsafe {
-        //         start_dns_server(port);
-        //     }
-        // });
-        // child.join();
-    }
 }

@@ -4,6 +4,7 @@ use rocket;
 use rocket::State;
 use rocket_contrib::Json;
 use state::DDOS;
+use dns::DNState;
 
 use security::{secret_compare, Signature};
 
@@ -37,7 +38,7 @@ fn query(host: String, payload: Option<Signature>, state: State<DDOS>) -> String
 
 #[allow(unused_variables)]
 #[post("/host/<host>", format = "application/json", data = "<host_data>")]
-fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) -> String{
+fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>, dns: State<DNState>) -> String{
 
     /* First check the key ID is even known */
     let sig = &host_data.auth;
@@ -58,6 +59,9 @@ fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) -> Strin
     let mut m = state.hosts.lock().unwrap();
     m.insert(host_data.name.clone(), host_data.ip.clone());
 
+    let mut dns_hosts = dns.hosts.lock().unwrap();
+    dns_hosts.insert(host_data.name.clone(), host_data.ip.clone());
+
     // Dropping keys scope so we can lock it again later
     drop(keys);
 
@@ -67,9 +71,10 @@ fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>) -> Strin
 }
 
 
-pub fn initialise(state: DDOS) {
+pub fn initialise(state: DDOS, dns: DNState) {
     rocket::ignite()
         .mount("/", routes![query, host_update])
         .manage(state)
+        .manage(dns)
         .launch();
 }
