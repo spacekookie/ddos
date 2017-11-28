@@ -1,6 +1,6 @@
 [package]
 name = "ddos"
-version = "0.1.0"
+version = "1.0.0-rc1"
 authors = ["Katharina Fey <kookie@spacekookie.de>"]
 build = "build.rs"
 

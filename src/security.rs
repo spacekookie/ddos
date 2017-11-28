@@ -14,8 +14,8 @@ pub struct Signature {
 pub fn secret_compare(a: &str, b: &str) -> bool {
 
     /* First compare length */
-    let len_a: i32 = a.len();
-    let len_b: i32 = b.len();
+    let len_a: usize = a.len();
+    let len_b: usize = b.len();
     if len_a != len_b {
         println!("Not the same length {} {}", len_a, len_b);
         return false;
