@@ -3,6 +3,7 @@ name = "ddos"
 version = "1.0.0-rc1"
 authors = ["Katharina Fey <kookie@spacekookie.de>"]
 build = "build.rs"
+opt-level = "z"
 
 [dependencies]
 libc = "0.2.33"

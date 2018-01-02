@@ -3,4 +3,4 @@
 authorized = "auths/"
 hooks = "ddos.lua"
 port = "8001"
-hosts = "hosts.toml"
+hosts = "hosts.json"
