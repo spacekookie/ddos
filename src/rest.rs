@@ -19,20 +19,18 @@ struct Host {
 /// Gets some base data for a registered host. Is considered public 
 ///   because DNS can return the same information as this API so
 ///   there isn't really any point to faking privacy
-#[get("/host/<host>?<payload>")]
+#[get("/host/<host>")]
 #[allow(unused_variables)]
-fn query(host: String, payload: Option<Signature>, state: State<DDOS>) -> String {
+fn query(host: String, state: State<DDOS>) -> String {
+
+    println!("Getting queury");
 
     /* "Find" a host */
     let hosts = state.hosts.lock().unwrap();
-    let hq = hosts.get(&host);
-
-    match (hq, &payload) {
-        (Some(h), &Some(ref sig)) => {
-            return format!("Host: {}\nSignature: {:?}", h, sig.signature);
-        },
-        (_, _) => return format!("INVALID PARAMETERS {}, {:?}!", host, &payload)
-    }
+    return match hosts.get(&host) {
+        Some(val) => format!("{}", val),
+        None => format!("Unknown host!"),
+    };
 }
 
 
@@ -62,8 +60,10 @@ fn host_update(host: String, host_data: Json<Host>, state: State<DDOS>, dns: Sta
     let mut dns_hosts = dns.hosts.lock().unwrap();
     dns_hosts.insert(host_data.name.clone(), host_data.ip.clone());
 
-    // Dropping keys scope so we can lock it again later
+    // Dropping scopes so we can lock it again later
+    drop(dns_hosts);
     drop(keys);
+    drop(m);
 
     // Sync the changes immediately
     state.sync();

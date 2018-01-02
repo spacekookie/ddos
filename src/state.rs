@@ -71,8 +71,8 @@ impl DDOS {
         }
 
         let json = serde_json::to_string(&HostFile { hosts: hosts });
-        let file = File::open(&self.host_path);
-        // write!(file, "{:?}", json);
+        // let file = File::open(&self.host_path);
+        println!("{:?}", json);
     }
 
     fn get_authorized(path: &str) -> HashMap<String, String> {
@@ -105,10 +105,8 @@ impl DDOS {
             secret_f.read_to_string(&mut secret).unwrap();
             drop(secret_f);
 
-            LOG.status(&secret);
-
             /* Store name-secret combo in map */
-            LOG.status(&format!("Scoped a secret for '{}'", &name));
+            LOG.status(&format!("Scoped a secret for '{}': '{}'", &name, &secret));
             auth.insert(name, secret);
         }
 
