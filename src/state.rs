@@ -5,8 +5,8 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::sync::Mutex;
-use std::fs::*;
-use std::io::prelude::*;
+use std::io::Write;
+
 use std::collections::*;
 use serde_json;
 
@@ -70,9 +70,9 @@ impl DDOS {
             });
         }
 
-        let json = serde_json::to_string(&HostFile { hosts: hosts });
-        // let file = File::open(&self.host_path);
-        println!("{:?}", json);
+        let json = serde_json::to_string(&HostFile { hosts: hosts }).unwrap();
+        let mut file = File::create(&self.host_path).unwrap();
+        file.write_all(json.as_bytes()).unwrap();
     }
 
     fn get_authorized(path: &str) -> HashMap<String, String> {
@@ -106,7 +106,7 @@ impl DDOS {
             drop(secret_f);
 
             /* Store name-secret combo in map */
-            LOG.status(&format!("Scoped a secret for '{}': '{}'", &name, &secret));
+            LOG.status(&format!("Scoped a secret for '{}'...", &name));
             auth.insert(name, secret);
         }
 
@@ -116,10 +116,29 @@ impl DDOS {
     fn get_hosts(path: &str) -> HashMap<String, String> {
         let mut hosts = HashMap::new();
 
-        // TODO: Read data from some form of config!
-        let k = String::from("kookiejar.tech");
-        let v = String::from("67.61.79.0"); // 🌈
-        hosts.insert(k, v);
+        let mut hosts_json = String::new();
+
+        match File::open(path) {
+
+            /* Executed if the file exists and we can work with it */
+            Ok(ref mut f) => {
+                f.read_to_string(&mut hosts_json).unwrap();
+                let hostfile: HostFile = serde_json::from_str(&hosts_json).unwrap();
+
+                for host in &hostfile.hosts {
+                    let name = &host.name;
+                    let ip = &host.ip;
+
+                    hosts.insert(name.clone(), ip.clone());
+                }
+            }
+
+            /* Executed if the config doesn't exist */
+            Err(_) => {
+                let mut file = File::create(path).unwrap();
+                file.write_all(b"{ \"hosts\": [] }").unwrap();
+            }
+        };
 
         return hosts;
     }

@@ -23,8 +23,6 @@ struct Host {
 #[allow(unused_variables)]
 fn query(host: String, state: State<DDOS>) -> String {
 
-    println!("Getting queury");
-
     /* "Find" a host */
     let hosts = state.hosts.lock().unwrap();
     return match hosts.get(&host) {
