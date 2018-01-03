@@ -1,7 +1,3 @@
-/target/
-**/*.rs.bk
-
-# Application specific
-auths/
-hosts.toml
-
+hosts.json
+target/
+auths
