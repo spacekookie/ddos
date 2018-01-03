@@ -177,7 +177,11 @@ int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* 
   char dom[strlen(domain_name) + 1];
   memset(dom, 0, strlen(domain_name) + 1);
   memcpy(dom, domain_name, strlen(domain_name));
+
+  printf("Creating an IP\n");
   struct IPAddress address = callbackA(state, &dom);
+
+  printf("We have the address!\n");
 
   for(int i = 0; i < 4; i++) {
     addr[i] = (uint8_t) address.addr[i];
@@ -656,7 +660,7 @@ void start_dns_server(int _port)
 /** Register a single callback function */
 void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
 {
-  printf("Regostering callback handle for type %d\n", type);
+  printf("Registering callback handle for type %d\n", type);
   switch(type) {
     case 4: 
       callbackA = cb;
@@ -676,6 +680,7 @@ void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
 void set_state(void *s)
 {
   state = s;
+  printf("State: %p", state);
 }
 
 void set_callback(int type, int (*cb)(const void *, const char *))

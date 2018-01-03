@@ -12,6 +12,8 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 /// The main state held (and given to C) for DNS resolution
+#[derive(Debug)]
+#[repr(C)]
 pub struct DNState {
     pub hosts: Mutex<HashMap<String, String>>,
     thread: JoinHandle<()>
@@ -28,7 +30,6 @@ extern {
     fn start_dns_server(port: i32);
     fn set_state(state: &DNState);
     fn set_callback(_type: i32, cb: extern "C" fn(*const c_void, *const c_char) -> IPAddress);
-    fn do_fun_stuff();
 }
 
 impl DNState {
@@ -56,7 +57,12 @@ impl DNState {
 /// A simple function which resolves IPv4 queries in our known hosts hashtable
 extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAddress {
     let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
+    println!("IPv4 callback for {:?}", host_name);
+    println!("State:  {:?}", state);
+
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
+    println!("Recovered state successfully! {:?}", &state_data);
+
     let host_data = state_data.hosts.lock().unwrap();
 
     return match host_data.get(host_name) {
@@ -80,6 +86,8 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
 /// A simple function which resolves IPv4 queries in our known hosts hashtable
 extern "C" fn ipv6_callback(state: *const c_void, string: *const c_char) -> IPAddress {
     let host_name = unsafe { CStr::from_ptr(string).to_str().unwrap() };
+    println!("IPv6 callback for {:?}", host_name);
+
     let state_data: &DNState = unsafe { &*(state as *const DNState) };
     let host_data = state_data.hosts.lock().unwrap();
 
