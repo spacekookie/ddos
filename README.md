@@ -13,4 +13,4 @@ cd ddos/
 
 You will need to have a Rust 1.x toolchain installed to build ddos and `cmake` and a modern `gcc` (version 5.0+). You can adjust the `ddos.toml` configuration file to your liking before launching the server. You will also have to generate a secret key into the `auth` directory. Recommended is you use sha256 to generate some hash and save it in a file. The name will be the username, the contents the key. Use this key when authenticating via the RESTful API.
 
-Compile the application with `cargo build --release` then run it via `target/release/ddos start` and you're all set :)
+Compile the application with `cargo build --release` then run it via `target/release/ddos start` and you're all set 😊
