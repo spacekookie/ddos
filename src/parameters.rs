@@ -29,10 +29,8 @@ pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {
         // .long("keys")
         // .help("Override key-store setting from the config")
         // .takes_value(true))
-                    
     /* Mostly used for development */
         .subcommand(SubCommand::with_name("run").about("Run ddos as a forground process"))
-    
     /* Basic daemon control flow */
         // .subcommand(SubCommand::with_name("start").about("Start ddos as a background process"))
         // .subcommand(SubCommand::with_name("stop").about("Stop ddos background process (if exists)"))

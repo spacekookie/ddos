@@ -107,6 +107,11 @@ fn main() {
 
     match matches.subcommand() {
         ("run", Some(_)) => start_server(hosts_path, keys_path, port),
+        ("register", Some(f)) => register_user(
+            keys_path,
+            f.value_of("key_id").unwrap(),
+            f.value_of("secret").unwrap(),
+        ),
         _ => {}
     }
 }
@@ -121,3 +126,5 @@ fn start_server(hosts_path: &str, keys_path: &str, port: u32) {
     /* Initialise the REST API (🚀) with referenced state */
     rest::initialise(state, dns);
 }
+
+fn register_user(keys_path: &str, key_id: &str, secret: &str) {}
