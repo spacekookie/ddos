@@ -4,23 +4,21 @@
 //! will then inform the user (sometimes in colour!) about
 //! what went wrong! Nice, eh?
 
-use std::process;
 use colored::*;
-
+use std::process;
 
 pub struct Errors<'a> {
     pub name: &'a str,
-    pub version: &'a str
+    pub version: &'a str,
 }
 
 pub enum ErrorType {
     Status,
     Warning,
-    Problem
+    Problem,
 }
 
 impl<'a> Errors<'a> {
-    
     pub fn status(&self, msg: &str) {
         self.log(msg, ErrorType::Status);
     }

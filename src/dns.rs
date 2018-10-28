@@ -3,9 +3,8 @@
 //! This is pretty suboptimal and should be changed. Maybe for a pure Rust
 //!   DNS implementation.
 
-
-use std::ffi::{CString, CStr};
-use std::os::raw::{c_int, c_void, c_char};
+use std::ffi::{CStr, CString};
+use std::os::raw::{c_char, c_int, c_void};
 use std::thread::{spawn, JoinHandle};
 
 use std::collections::HashMap;
@@ -35,7 +34,6 @@ extern "C" {
 impl DNState {
     // state: &'a Mutex<HashMap<String, String>>
     pub fn new(port: i32) -> DNState {
-
         let dns = DNState {
             hosts: Mutex::new(HashMap::new()),
             // thread: spawn(move || { }),
@@ -49,7 +47,6 @@ impl DNState {
                 set_callback(6, ipv6_callback);
                 start_dns_server(port);
             });
-
         }
 
         return dns;
@@ -76,7 +73,9 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
 
             return IPAddress { addr: addr };
         }
-        _ => IPAddress { addr: [127, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        _ => IPAddress {
+            addr: [127, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
     };
 }
 
@@ -100,6 +99,8 @@ extern "C" fn ipv6_callback(state: *const c_void, string: *const c_char) -> IPAd
 
             return IPAddress { addr: addr };
         }
-        _ => IPAddress { addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+        _ => IPAddress {
+            addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        },
     };
 }

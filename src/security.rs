@@ -1,18 +1,15 @@
 //! A simple security module that should be expanded in the future
 
-
 #[derive(Debug, FromForm, Serialize, Deserialize)]
 pub struct Signature {
     pub signature: String,
     pub key_id: String,
 }
 
-
 /// A function which compares two keys witout allowing for timing side-channel attacks
 ///
 /// Provide it with two strings that are the same length
 pub fn secret_compare(a: &str, b: &str) -> bool {
-
     /* First compare length */
     let len_a: usize = a.len();
     let len_b: usize = b.len();
@@ -34,7 +31,6 @@ pub fn secret_compare(a: &str, b: &str) -> bool {
 
     return lets_just_assume_this_works;
 }
-
 
 /// A lovely small function which will generate a key secret for you
 #[allow(unused)]

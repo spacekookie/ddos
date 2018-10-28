@@ -4,14 +4,13 @@
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::sync::Mutex;
 use std::io::Write;
+use std::sync::Mutex;
 
-use std::collections::*;
 use serde_json;
+use std::collections::*;
 
 use LOG;
-
 
 /// Represents the json config which should become it's own module
 #[derive(Serialize, Deserialize)]
@@ -30,34 +29,29 @@ struct Host {
 pub struct DDOS {
     pub hosts: Mutex<HashMap<String, String>>,
     pub keys: Mutex<HashMap<String, String>>,
-    pub lua: String,
     pub api_port: u32,
     host_path: String,
     key_path: String,
 }
 
-
 impl DDOS {
     #[allow(unused_variables)]
-    pub fn new(lua_path: &str, host_path: &str, key_path: &str, port: u32) -> DDOS {
-
+    pub fn new(host_path: &str, key_path: &str, port: u32) -> DDOS {
         /* Read state from disk */
         let keys = DDOS::get_authorized(key_path);
         let hosts = DDOS::get_hosts(host_path);
 
-        return DDOS {
-            lua: String::from(""),
+        DDOS {
             hosts: Mutex::new(hosts),
             api_port: port,
             keys: Mutex::new(keys),
             host_path: String::from(host_path),
             key_path: String::from(key_path),
-        };
+        }
     }
 
     /// A function that syncs the current state to disk
     pub fn sync(&self) {
-
         /* Lock the hosts store */
         let h = self.hosts.lock().unwrap();
 
@@ -110,7 +104,7 @@ impl DDOS {
             auth.insert(name, secret);
         }
 
-        return auth;
+        auth
     }
 
     fn get_hosts(path: &str) -> HashMap<String, String> {
@@ -119,7 +113,6 @@ impl DDOS {
         let mut hosts_json = String::new();
 
         match File::open(path) {
-
             /* Executed if the file exists and we can work with it */
             Ok(ref mut f) => {
                 f.read_to_string(&mut hosts_json).unwrap();
@@ -140,6 +133,6 @@ impl DDOS {
             }
         };
 
-        return hosts;
+        hosts
     }
 }

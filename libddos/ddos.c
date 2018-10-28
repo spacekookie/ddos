@@ -5,12 +5,12 @@
 //   more information.
 
 #include "ddos.h"
-#include <lauxlib.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #define BUF_SIZE 2048
 
@@ -680,7 +680,7 @@ void ddos_register_callback(int type, int* (*cb)(const void *, const char *))
 void set_state(void *s)
 {
   state = s;
-  printf("State: %p", state);
+  printf("State: %p\n", state);
 }
 
 void set_callback(int type, int (*cb)(const void *, const char *))

@@ -1,21 +1,20 @@
 //! External dependencies
 
-use clap::{Arg, App, SubCommand}; // ArgMatches
-
+use clap::{App, Arg, SubCommand}; // ArgMatches
 
 pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {
     let app = App::new(name)
         .version(version)
         .author("Katharina Fey <kookie@spacekookie.de>")
-        .about("A Dynamic DOmain nameServer client which is configurable in lua \n  and provides a RESTful API for remote host configuration")
+        .about("A Dynamic DOmain nameServer client which provides a RESTful API for remote host configuration")
 
     /* Define argument handlers */
         .arg(Arg::with_name("port")
-            .short("p")
-            .long("port")
-            .help("Override the API port setting from the config")
-            .takes_value(true))
-        .arg(Arg::with_name("config") // TODO: Rename this to "lua"?
+                .short("p")
+                .long("port")
+                .help("Override the API port setting from the config")
+                .takes_value(true))
+            .arg(Arg::with_name("config") // TODO: Rename this to "lua"?
             .short("c")
             .long("config")
             .help("Provide a DDOS config file (default: ddos.toml)")
@@ -41,7 +40,15 @@ pub fn initialise<'a>(name: &'a str, version: &'a str) -> App<'a, 'a> {
         // .subcommand(SubCommand::with_name("restart").about("First stop, then restart ddos"))
 
     /* Utility to register/unregister pubkeys */
-        // .subcommand(SubCommand::with_name("register").about("Register a public key as authorised"))
+        .subcommand(SubCommand::with_name("register").about("Register a public key as authorised"))
+            .arg(Arg::with_name("key_id")
+                .takes_value(true)
+                .long("id")
+                .help("Provide a key ID"))
+            .arg(Arg::with_name("secret")
+                .takes_value(true)
+                .long("secret")
+                .help("A cryptographic random secret"))
         // .subcommand(SubCommand::with_name("unregister").about("Unregister an authorised key"))
         ; // FIXME: 🤮 I don't want to have to move it every time :P
 
