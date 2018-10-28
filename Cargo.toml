@@ -9,7 +9,6 @@ opt-level = "z"
 libc = "0.2.33"
 toml = "0.4"
 clap = "2.23.3"
-thunder = { path = "../thunder/" }
 colored = "1.5"
 rocket = "0.3.3"
 rocket_codegen = "0.3.3"
