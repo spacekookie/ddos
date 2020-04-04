@@ -30,11 +30,7 @@ fn query(host: String, state: State<DDOS>) -> String {
 }
 
 #[allow(unused_variables)]
-#[post(
-    "/host/<host>",
-    format = "application/json",
-    data = "<host_data>"
-)]
+#[post("/host/<host>", format = "application/json", data = "<host_data>")]
 fn host_update(
     host: String,
     host_data: Json<Host>,

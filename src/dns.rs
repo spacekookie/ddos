@@ -27,7 +27,7 @@ pub struct IPAddress {
 
 extern "C" {
     fn start_dns_server(port: i32);
-    fn set_state(state: &DNState);
+    fn set_state(state: *const DNState);
     fn set_callback(_type: i32, cb: extern "C" fn(*const c_void, *const c_char) -> IPAddress);
 }
 
@@ -40,7 +40,7 @@ impl DNState {
         };
 
         unsafe {
-            set_state(&dns);
+            set_state(&dns as *const _);
 
             spawn(move || {
                 set_callback(4, ipv4_callback);
@@ -71,7 +71,7 @@ extern "C" fn ipv4_callback(state: *const c_void, string: *const c_char) -> IPAd
                 ctr += 1;
             }
 
-            return IPAddress { addr: addr };
+            return IPAddress { addr };
         }
         _ => IPAddress {
             addr: [127, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -97,7 +97,7 @@ extern "C" fn ipv6_callback(state: *const c_void, string: *const c_char) -> IPAd
                 ctr += 1;
             }
 
-            return IPAddress { addr: addr };
+            return IPAddress { addr };
         }
         _ => IPAddress {
             addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],

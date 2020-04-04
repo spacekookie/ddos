@@ -95,6 +95,7 @@ fn main() {
     let keys_path: &str = &cfg_toml.keys.unwrap_or(String::from(DEF_KEYS));
     let hosts_path: &str = &cfg_toml.hosts.unwrap_or(String::from(DEF_HOSTS));
     let port_config: &str = &cfg_toml.port.unwrap_or(String::from(DEF_PORT));
+    let dns_port_config: &str = &cfg_toml.dns_port.unwrap_or(String::from(DEF_DNS_PORT));
 
     /* Override port with CLI value if it was provided */
     let port: u32 = matches
@@ -105,10 +106,19 @@ fn main() {
             LOG.log_and_die("Invalid port; must be unsigned integer!", 255);
         });
 
+    /* Override port with CLI value if it was provided */
+    let dns_port: i32 = matches
+        .value_of("dns-port")
+        .unwrap_or(dns_port_config)
+        .parse::<i32>()
+        .unwrap_or_else(|_| {
+            LOG.log_and_die("Invalid port; must be unsigned integer!", 255);
+        });
+
     LOG.log("Loaded config successfully!", ErrorType::Status);
 
     match matches.subcommand() {
-        ("run", Some(_)) => start_server(hosts_path, keys_path, port),
+        ("run", Some(_)) => start_server(hosts_path, keys_path, port, dns_port),
         ("register", Some(f)) => register_user(
             keys_path,
             f.value_of("key_id").unwrap(),
@@ -118,15 +128,15 @@ fn main() {
     }
 }
 
-fn start_server(hosts_path: &str, keys_path: &str, port: u32) {
+fn start_server(hosts_path: &str, keys_path: &str, port: u32, dns_port: i32) {
     /* Initialise the main state and try (🤞) to load required files */
     let state = DDOS::new(hosts_path, keys_path, port);
 
     /* Initialise DNS state */
-    let dns = dns::DNState::new(53);
+    let dns = dns::DNState::new(dns_port);
 
     /* Initialise the REST API (🚀) with referenced state */
     rest::initialise(state, dns);
 }
 
-fn register_user(keys_path: &str, key_id: &str, secret: &str) {}
+fn register_user(_: &str, _: &str, _: &str) {}

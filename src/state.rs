@@ -31,7 +31,6 @@ pub struct DDOS {
     pub keys: Mutex<HashMap<String, String>>,
     pub api_port: u32,
     host_path: String,
-    key_path: String,
 }
 
 impl DDOS {
@@ -46,7 +45,6 @@ impl DDOS {
             api_port: port,
             keys: Mutex::new(keys),
             host_path: String::from(host_path),
-            key_path: String::from(key_path),
         }
     }
 

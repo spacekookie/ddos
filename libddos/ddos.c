@@ -178,10 +178,11 @@ int get_A_Record(uint8_t addr[4], const char domain_name[], struct sockaddr_in* 
   memset(dom, 0, strlen(domain_name) + 1);
   memcpy(dom, domain_name, strlen(domain_name));
 
-  printf("Creating an IP\n");
-  struct IPAddress address = callbackA(state, &dom);
+  printf("Getting the IP...\n");
+  callbackA(state, &dom);
+  struct IPAddress address;
 
-  printf("We have the address!\n");
+  printf("Done!\n");
 
   for(int i = 0; i < 4; i++) {
     addr[i] = (uint8_t) address.addr[i];
@@ -624,11 +625,11 @@ void start_dns_server(int _port)
   rc = bind(sock, (struct sockaddr*) &addr, addr_len);
 
   if(rc != 0) {
-    printf("Could not bind: %s\n", strerror(errno));
+    printf("DNS: Could not bind: %s\n", strerror(errno));
     return 1;
   }
 
-  printf("Listening on port %u.\n", port);
+  printf("DNS: Listening on port %u.\n", port);
 
   while(1) {
     memset(&msg, 0, sizeof(struct Message));
@@ -642,10 +643,13 @@ void start_dns_server(int _port)
       (struct sockaddr *) &client_addr, &addr_len);
 
     if(decode_msg(&msg, buffer, nbytes) != 0) {
+      printf("DNS: failed to decode invalid query!\n");
       continue;
     }
+    
+    print_query(&msg);
 
-    resolver_process(&msg,&client_addr);   
+    resolver_process(&msg, &client_addr);   
 
     uint8_t *p = buffer;
     if(encode_msg(&msg, &p) != 0) {
