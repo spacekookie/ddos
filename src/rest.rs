@@ -3,7 +3,7 @@
 use dns::DNState;
 use rocket;
 use rocket::State;
-use rocket_contrib::Json;
+use rocket_contrib::json::Json;
 use state::DDOS;
 
 use security::{secret_compare, Signature};

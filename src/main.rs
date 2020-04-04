@@ -1,12 +1,12 @@
 //! Small dynamic DNS utily with RESTful API for configuration
 //!
 //!
+#![feature(proc_macro_hygiene, decl_macro)]
 
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
-#![feature(custom_derive)]
+#[macro_use]
 extern crate rocket;
 extern crate rocket_contrib;
+
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -37,13 +37,15 @@ mod security;
 struct TomlConfig {
     keys: Option<String>,
     port: Option<String>,
+    dns_port: Option<String>,
     hosts: Option<String>,
 }
 
 /* Define some constants */
-const APP_VERSION: &'static str = "0.1.0";
+const APP_VERSION: &'static str = "1.0.0-rc2";
 const APP_NAME: &'static str = "ddos";
 const DEF_PORT: &'static str = "8001";
+const DEF_DNS_PORT: &'static str = "53";
 const DEF_CONFIG: &'static str = "ddos.toml";
 const DEF_HOSTS: &'static str = "hosts.json";
 const DEF_KEYS: &'static str = "auths/";
@@ -121,7 +123,7 @@ fn start_server(hosts_path: &str, keys_path: &str, port: u32) {
     let state = DDOS::new(hosts_path, keys_path, port);
 
     /* Initialise DNS state */
-    let dns = dns::DNState::new(5050);
+    let dns = dns::DNState::new(53);
 
     /* Initialise the REST API (🚀) with referenced state */
     rest::initialise(state, dns);
